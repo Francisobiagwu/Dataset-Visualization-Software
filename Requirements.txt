@@ -1,1 +1,1 @@
-This will serve as our requirement specification. We can type it in microsoft document and upload it later.
+This will serve as our requirement specification, used for software design conformance checking. We can type it in microsoft document and upload it later.
