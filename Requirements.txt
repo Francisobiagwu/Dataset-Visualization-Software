@@ -1,1 +1,5 @@
-This will serve as our requirement specification, used for software design conformance checking. We can type it in microsoft document and upload it later.
+* Design a software architecture that implements at least 3 software design patterns
+* For each use case, draw a unified model language (UML) class diagram
+* For each use case, draw a UML component diagram
+* Draw a UML deployment diagram for the software architecture
+* Implement functional and quality attributes
