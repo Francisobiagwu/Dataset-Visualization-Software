@@ -26,7 +26,7 @@ public class Password {
      * @return boolean
      */
     public boolean setPassword() {
-        System.out.println("Password: ");
+        System.out.print("Password: ");
         Scanner scanner = new Scanner(System.in);
         String user_password = scanner.nextLine();
         this.userEnteredPassword = user_password;
