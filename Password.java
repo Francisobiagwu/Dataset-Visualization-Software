@@ -8,8 +8,8 @@ import java.util.*;
  * @version 1
  */
 public class Password {
-    private final int minPasswordLen = 8;      // minimum password length
-    private final int maxPasswordLen = 15;     // maximum password length
+    private static final int MIN_PASSWORD_LEN = 8;      // minimum password length
+    private static final int MAX_PASSWORD_LEN = 15;     // maximum password length
     private boolean hasLetter = false;         // letter flag
     private boolean hasDigit = false;          // digit flag
     private boolean hasSpecialChar = false;    // special character flag
