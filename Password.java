@@ -1,12 +1,11 @@
-
 import java.util.*;
 
 /**
  * Password
  * This class is used to create a valid password implementing security quality attribute
  * @author Francis Obiagwu
- * @version 1
  * @date 5/22/2018
+ * @version 1
  */
 public class Password {
     private final int minPasswordLen = 8;      // minimum password length
