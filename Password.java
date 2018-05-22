@@ -14,8 +14,6 @@ public class Password {
     private boolean hasDigit = false;          // digit flag
     private boolean hasSpecialChar = false;    // special character flag
     private boolean sameCharUsedTwice = false; // same character flag
-
-
     private boolean noSpace = false;           // space checker
     private boolean passwordLenMet = false;    // password length requirement checker
     private boolean isPasswordValid = false;   // main flag, sets to true if all requirements are met
@@ -32,7 +30,6 @@ public class Password {
         Scanner scanner = new Scanner(System.in);
         String user_password = scanner.nextLine();
         this.userEnteredPassword = user_password;
-        
         
         // verify all the requirements
         this.hasLetterVerify();
@@ -52,11 +49,6 @@ public class Password {
             // if the user didn't meet the requirement
             return this.isPasswordValid;
         }
-
-
-
-
-
     }
 
     /**
@@ -64,11 +56,8 @@ public class Password {
      * @return String
      */
     public String getPassword() {
-        
-        return password;
-        
+        return this.password;
     }
-
 
     /**
      * Verify if the user entered password contains a letter
@@ -98,9 +87,7 @@ public class Password {
     private void hasSpecialCharVerify() {
         if (this.userEnteredPassword.matches(".*[!@#$%^&*()_+|<>?{}\\[\\]~-].*")) { // check for special character
             this.hasSpecialChar = true;
-
         }
-
     }
 
     /**
@@ -131,11 +118,8 @@ public class Password {
                         break outerLoop;
                     }
                 }
-
             }
         }
-
-
     }
 
     /**
@@ -146,8 +130,5 @@ public class Password {
             this.passwordLenMet = true;
         }
     }
-
-
-
 
 }
