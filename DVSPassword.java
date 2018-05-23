@@ -30,7 +30,7 @@ public class DVSPassword {
         Scanner scanner = new Scanner(System.in);
         String user_password = scanner.nextLine();
         this.userEnteredPassword = user_password;
-        
+
         // verify all the requirements
         this.hasLetterVerify();
         this.hasDigitVerify();
@@ -53,7 +53,7 @@ public class DVSPassword {
 
     /**
      * Get password
-     * @return String
+     * @return user's password
      */
     public String getPassword() {
         return this.password;
@@ -103,10 +103,10 @@ public class DVSPassword {
     /**
      * Verify if the user used the same character more than once
      */
-    
+
     private void sameCharUsedTwiceVerify() {
         String str_array[] = this.userEnteredPassword.split("");
-        
+
         outerLoop:
         for (int i = 0; i < str_array.length; i++) {
             int count = 0;
@@ -130,5 +130,6 @@ public class DVSPassword {
             this.passwordLenMet = true;
         }
     }
+
 
 }
