@@ -1,13 +1,13 @@
 import java.util.*;
 
 /**
- * Password
+ * DVSPassword
  * This class is used to create a valid password implementing security quality attribute
  * @author Francis Obiagwu
  * @date 5/22/2018
  * @version 1
  */
-public class Password {
+public class DVSPassword {
     private static final int MIN_PASSWORD_LEN = 8;      // minimum password length
     private static final int MAX_PASSWORD_LEN = 15;     // maximum password length
     private boolean hasLetter = false;         // letter flag
