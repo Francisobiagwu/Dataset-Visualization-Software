@@ -13,9 +13,10 @@ public class DVSSecurityQuestions {
     private Map<String, String> userSecurityQuestionsAndAnswers = new HashMap<>();
     private static String question0 = "In what city where you born?";
     private static String question1 = "What is the color of your first car?";
-    private static String question2 = "Where did you travel to the first time you flew";
-    private static String question3 = "What is the your eldest sibling's middle name";
-    private static String[] defaultSecurityQuestions = new String[4];
+    private static String question2 = "Where did you travel to the first time you flew?";
+    private static String question3 = "What is the your eldest sibling's middle name?";
+    private static int defaultSecurityQuestionSize = 4;
+    private static String[] defaultSecurityQuestions = new String[defaultSecurityQuestionSize];
     private static final int MAX_USER_SECURITY_QUESTION = 2;
 
     DVSSecurityQuestions() {
