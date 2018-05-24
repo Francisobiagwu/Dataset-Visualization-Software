@@ -48,9 +48,11 @@ public class DVSClient {
             case 3:
                 // call function or class that will interact with the database to retrieve user information to enable
                 // resetting of password
+                break;
 
             case 4:
                 System.exit(0);
+                break;
         }
 
     }
