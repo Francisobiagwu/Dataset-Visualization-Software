@@ -43,6 +43,7 @@ public class DVSPassword {
         }
         else{
             // if the user didn't meet the requirement
+            this.isPasswordReqMet = false;
             return this.isPasswordReqMet;
         }
     }
@@ -133,5 +134,13 @@ public class DVSPassword {
 
     public void setPasswordReqMet(boolean passwordReqMet) {
         isPasswordReqMet = passwordReqMet;
+    }
+
+    public void printRequirementStatus(){
+        System.out.println("hasLetter:" +hasLetter+
+                "    \nhasDigit: " +hasDigit+
+                "    \nhasSpecialChar: " +hasSpecialChar+
+                "    \nsameCharUsedTwice: " +sameCharUsedTwice+
+                "    \nnoSpace: "+noSpace);
     }
 }

@@ -10,10 +10,10 @@
 public class DVSClient {
 
     public static void main(String[] args) {
-        DVSInstructions instructions = new DVSInstructions();
+        DVSInstructions dvsInstruction = new DVSInstructions();
 
         DVSSecurityQuestions securityQuestions = new DVSSecurityQuestions();
-        System.out.println(instructions.openingInstruction);
+        System.out.println(dvsInstruction.openingInstruction);
         int userSelection = DVSGetInteger.getInt();
         DVSUsername dvsUsername = new DVSUsername();
         DVSPassword dvsPassword = new DVSPassword();
@@ -27,8 +27,12 @@ public class DVSClient {
                 // verify if the user input meets the username and password requirement
                 if(dvsPassword.isPasswordReqMet() && dvsUsername.isUsernameReqMet()){
                     // now interact with the database to verify if the credentials are valid
+                    //if credentials are valid
+                    System.out.println(dvsInstruction.visualizationInstruction);
                 }
                 else{
+                    dvsUsername.printRequirementStatus();
+                    dvsPassword.printRequirementStatus();
                     System.out.println("Credentials are invalid");
                 }
 
@@ -36,6 +40,7 @@ public class DVSClient {
 
             case 2:
                 dvsUsername.setUsername();
+                System.out.println("--------------------------");
                 dvsPassword.setPassword();
                 dvsSecurityQuestionsObj.setUserSecurityQuestionsAndAnswers();
                 break;
