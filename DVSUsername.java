@@ -16,7 +16,7 @@ public class DVSUsername {
     private boolean isUsernameLengthMet = false;    // flag to to ensure the user enters only the acceptable length for username
     private boolean isFirstThreeCharAlpha = false;  // flag set to ensure that the first 3 character is always alphabet
     private boolean isLastThreeCharDigits = false;  // flag set to ensure that the last 3 characters is always digits
-    private boolean isUsernameValid = false;         // This flag is set to true when all the requirements are met
+    private boolean isUsernameReqMet = false;         // This flag is set to true when all the requirements are met
 
 
     /**
@@ -27,7 +27,7 @@ public class DVSUsername {
     public boolean setUsername() {
         Scanner scanner = new Scanner(System.in);                   // obtain input from the user
         System.out.print("Username: ");
-        this.usernameEntered = scanner.nextLine().toLowerCase();    //convert all input to lowercase
+        this.usernameEntered = DVSGetString.getString().toLowerCase();    //convert all input to lowercase
 
         return this.requirementMet();                               //returns true if requirement is met and false if not
     }
@@ -115,12 +115,16 @@ public class DVSUsername {
         this.verifyLastThreeChar();
 
         if (this.isUsernameLengthMet && this.isFirstThreeCharAlpha && this.isLastThreeCharDigits) {
-            this.isUsernameValid = true;
+            this.isUsernameReqMet = true;
             this.username = this.usernameEntered;
-            return this.isUsernameValid;
+            return this.isUsernameReqMet;
         } else {
-            this.isUsernameValid = false;
-            return this.isUsernameValid;
+            this.isUsernameReqMet = false;
+            return this.isUsernameReqMet;
         }
+    }
+
+    public boolean isUsernameReqMet() {
+        return isUsernameReqMet;
     }
 }

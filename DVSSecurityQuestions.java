@@ -32,7 +32,7 @@ public class DVSSecurityQuestions {
     }
 
 
-    public void setUserSecurityQuestions() {
+    public void setUserSecurityQuestionsAndAnswers() {
         System.out.println("Setup security question in case you forget your password");
         System.out.println("Enter next if you wish to skip to the next question");
         Scanner scanner = new Scanner(System.in);
@@ -112,9 +112,6 @@ public class DVSSecurityQuestions {
      * @param userSecurityQuestionsAndAnswers
      */
 
-    public void setUserSecurityQuestionsAndAnswers(Map<String, String> userSecurityQuestionsAndAnswers) {
-        this.userSecurityQuestionsAndAnswers = userSecurityQuestionsAndAnswers;
-    }
 
 
     /**

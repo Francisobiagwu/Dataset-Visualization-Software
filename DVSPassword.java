@@ -1,5 +1,3 @@
-import java.util.*;
-
 /**
  * DVSPassword
  * This class is used to create a valid password implementing security quality attribute
@@ -16,7 +14,7 @@ public class DVSPassword {
     private boolean sameCharUsedTwice = false; // same character flag
     private boolean noSpace = false;           // space checker
     private boolean passwordLenMet = false;    // password length requirement checker
-    private boolean isPasswordValid = false;   // main flag, sets to true if all requirements are met
+    private boolean isPasswordReqMet = false;   // main flag, sets to true if all requirements are met
     private String password = null;            // valid password
     private String userEnteredPassword = null; // user entered password
 
@@ -27,9 +25,7 @@ public class DVSPassword {
      */
     public boolean setPassword() {
         System.out.print("Password: ");
-        Scanner scanner = new Scanner(System.in);
-        String user_password = scanner.nextLine();
-        this.userEnteredPassword = user_password;
+        this.userEnteredPassword = DVSGetString.getString();
 
         // verify all the requirements
         this.hasLetterVerify();
@@ -41,13 +37,13 @@ public class DVSPassword {
 
         if (this.hasLetter && this.hasDigit && this.hasSpecialChar && !this.noSpace && !this.sameCharUsedTwice && this.passwordLenMet){
             // if all requirement are met
-            this.isPasswordValid = true;
+            this.isPasswordReqMet = true;
             this.password = this.userEnteredPassword;
-            return this.isPasswordValid;
+            return this.isPasswordReqMet;
         }
         else{
             // if the user didn't meet the requirement
-            return this.isPasswordValid;
+            return this.isPasswordReqMet;
         }
     }
 
@@ -131,5 +127,11 @@ public class DVSPassword {
         }
     }
 
+    public boolean isPasswordReqMet() {
+        return isPasswordReqMet;
+    }
 
+    public void setPasswordReqMet(boolean passwordReqMet) {
+        isPasswordReqMet = passwordReqMet;
+    }
 }
