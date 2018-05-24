@@ -1,9 +1,10 @@
 package edu.drexel.se577.grouptwo.viz.dataset;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.HashMap;
 
-public Attribute {
+public interface Attribute {
 
     void accept(Visitor visitor);
 
@@ -19,12 +20,16 @@ public Attribute {
          * attribute graph through the Dataset class.
          */
         void put(String key, Attribute value) {
-            mapping.put(
+            mapping.put(key, value);
+        }
+
+        public Optional<? extends Attribute> get() {
+            return Optional.empty();
         }
 
         @Override
         public void accept(Visitor visitor) {
-            visitor.accept(this);
+            visitor.visit(this);
         }
     }
 
