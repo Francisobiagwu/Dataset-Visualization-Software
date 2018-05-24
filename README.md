@@ -6,5 +6,5 @@ The software architecture of DVS encompasses different software design patterns 
 -----------------------------------------
 Running the software
 -----------------------------------------
-Acceptable data formats for upload: .png,  .jpg, .txt.__
+Acceptable data formats for upload: .png,  .jpg, .txt. __
 Available display format: xlsx, .jpg, png.
