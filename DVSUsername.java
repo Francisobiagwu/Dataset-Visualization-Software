@@ -25,7 +25,6 @@ public class DVSUsername {
      */
 
     public boolean setUsername() {
-        Scanner scanner = new Scanner(System.in);                   // obtain input from the user
         System.out.print("Username: ");
         this.usernameEntered = DVSGetString.getString().toLowerCase();    //convert all input to lowercase
 
