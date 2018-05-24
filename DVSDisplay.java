@@ -54,11 +54,5 @@ public class DVSDisplay implements Display{
         this.path = path;
     }
 
-    public static void main(String[] args) {
-        DVSDisplay display = new DVSDisplay();
-        display.setPath("C:\\Users\\Admin\\IdeaProjects\\IDS\\src\\DVSImage.jpg");
-        display.picture();
-
-
-    }
+   
 }
