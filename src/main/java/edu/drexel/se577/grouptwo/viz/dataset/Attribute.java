@@ -1,5 +1,8 @@
 package edu.drexel.se577.grouptwo.viz.dataset;
 
+import java.util.Set;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.HashMap;
@@ -10,6 +13,9 @@ public interface Attribute {
 
     public static final class Mapping implements Attribute {
         private final Map<String, Attribute> mapping = new HashMap<>();
+
+        Mapping() {
+        }
 
         /**
          * Package private put method.
@@ -23,8 +29,12 @@ public interface Attribute {
             mapping.put(key, value);
         }
 
-        public Optional<? extends Attribute> get() {
-            return Optional.empty();
+        Collection<String> getKeys() {
+            return mapping.keySet();
+        }
+
+        public Optional<? extends Attribute> get(String name) {
+            return Optional.ofNullable(mapping.get(name));
         }
 
         @Override
@@ -33,7 +43,63 @@ public interface Attribute {
         }
     }
 
+    public static final class Int implements Attribute {
+        public final int max;
+        public final int min;
+
+        public Int(int max, int min) {
+            this.max = max;
+            this.min = min;
+        }
+
+        @Override
+        public void accept(Visitor visitor) {
+            visitor.visit(this);
+        }
+
+
+    }
+
+    public static final class FloatingPoint implements Attribute {
+        public final double max;
+        public final double min;
+
+        public FloatingPoint(double max, double min) {
+            this.max = max;
+            this.min = min;
+        }
+
+        @Override
+        public void accept(Visitor visitor) {
+            visitor.visit(this);
+        }
+    }
+
+    public static final class Enumerated implements Attribute {
+        public final Set<String> choices;
+
+        private Enumerated(Set<String> choices) {
+            this.choices = Collections.unmodifiableSet(choices);
+        }
+
+        @Override
+        public void accept(Visitor visitor) {
+            visitor.visit(this);
+        }
+    }
+
+    public static final class Arbitrary implements Attribute {
+        @Override
+        public void accept(Visitor visitor) {
+            visitor.visit(this);
+        }
+    }
+
     public static interface Visitor {
+        void visit(Arbitrary attribute);
         void visit(Mapping mapping);
+        void visit(Int attribute);
+        void visit(Enumerated attribute);
+        void visit(FloatingPoint attribute);
     }
 }
