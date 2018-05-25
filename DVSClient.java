@@ -51,7 +51,7 @@ public class DVSClient {
                 newUser.setPassword();
                 printer.printWithCyan(dvsInstruction.line);
                 System.out.println();
-                printer.printWithCyan("Security questions");
+                printer.printWithCyan("Security questions\n");
                 dvsSecurityQuestionsObj.setUserSecurityQuestionsAndAnswers();
                 break;
 
