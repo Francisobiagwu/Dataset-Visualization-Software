@@ -16,6 +16,7 @@ Available display format: xlsx, .jpg, png.
 4. Type "java - jar group-2-project.jar"
 
 -----------------------------------------
+![Settings Window](https://gitlab.cci.drexel.edu/se-577-group-projects/group-2-project/edit/patch-1/READMEimageFile.jpg)
 
 
 ---Welcome to Dataset Visualization Software 1.0---
