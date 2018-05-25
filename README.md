@@ -6,7 +6,7 @@ The software architecture of DVS encompasses different software design patterns 
 
 Getting Started
 -----------------------------------------
-This software is a client-server architecture, therefore, therefore, server will be ran, before client is started. It is expected that the user also downloads or clone the server from this repo
+This software is a client-server architecture, therefore, the server has to be started first, before client is started. It is expected that the user also downloads or clone the server from this repo
 
 
 Prerequisities
