@@ -1,3 +1,6 @@
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * DVSPassword
  * This class is used to create a valid password implementing security quality attribute
@@ -151,13 +154,23 @@ public class DVSPassword {
     }
 
     public void printRequirementStatus() {
-        String str = "hasLetter:" + hasLetter +
-                "    \nhasDigit: " + hasDigit +
-                "    \nhasSpecialChar: " + hasSpecialChar +
-                "    \nsameCharUsedTwice: " + sameCharUsedTwice +
-                "    \nnoSpace: " + noSpace;
-        new DVSPrinter().printWithRed(str);
+        String str_array[] = new String[5];
+        Map<String, Boolean> reqDic = new HashMap<>();
+        reqDic.put("hasLetter", hasLetter);
+        reqDic.put("HasDigit", hasDigit);
+        reqDic.put("HasSpecialChar", hasSpecialChar);
+        reqDic.put("sameCharUsedTwice", sameCharUsedTwice);
+        reqDic.put("noSpace", noSpace);
+
         System.out.println();
+        for(Map.Entry<String, Boolean> entry : reqDic.entrySet()){
+            if(entry.getValue()){
+                new DVSPrinter().printWithGreen(entry.getKey() +": "+entry.getValue());
+            }
+            else{
+                new DVSPrinter().printWithRed(entry.getKey()+": "+entry.getValue());
+            }
+        }
     }
 
     public void printAcceptablePasswordInstruction() {
