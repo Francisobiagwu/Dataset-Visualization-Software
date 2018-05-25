@@ -86,7 +86,6 @@ public class DVSSecurityQuestions {
 
     /**
      * Allow the user to specify a security question and the answer
-     *
      * @param securityQuestion
      * @param answer
      */
@@ -98,7 +97,6 @@ public class DVSSecurityQuestions {
 
     /**
      * Get the user's security questions and the answers
-     *
      * @return hashMap of user's security Q and A
      */
 
@@ -136,7 +134,6 @@ public class DVSSecurityQuestions {
 
     /**
      * Get the second security question
-     *
      * @return 2nd security question
      */
 
@@ -147,7 +144,6 @@ public class DVSSecurityQuestions {
 
     /**
      * change the second security question
-     *
      * @param question1
      */
 
@@ -158,7 +154,6 @@ public class DVSSecurityQuestions {
 
     /**
      * Get the third security question
-     *
      * @return 3rd security question
      */
 

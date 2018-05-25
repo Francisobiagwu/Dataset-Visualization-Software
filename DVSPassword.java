@@ -1,9 +1,10 @@
 /**
  * DVSPassword
  * This class is used to create a valid password implementing security quality attribute
+ *
  * @author Francis Obiagwu
- * @date 5/22/2018
  * @version 1
+ * @date 5/22/2018
  */
 public class DVSPassword {
     private static final int MIN_PASSWORD_LEN = 8;      // minimum password length
@@ -21,6 +22,7 @@ public class DVSPassword {
 
     /**
      * Used to obtain password from the user
+     *
      * @return boolean
      */
     public boolean setPassword() {
@@ -35,13 +37,12 @@ public class DVSPassword {
         this.sameCharUsedTwiceVerify();
         this.verifyPasswordLen();
 
-        if (this.hasLetter && this.hasDigit && this.hasSpecialChar && !this.noSpace && !this.sameCharUsedTwice && this.passwordLenMet){
+        if (this.hasLetter && this.hasDigit && this.hasSpecialChar && !this.noSpace && !this.sameCharUsedTwice && this.passwordLenMet) {
             // if all requirement are met
             this.isPasswordReqMet = true;
             this.password = this.userEnteredPassword;
             return this.isPasswordReqMet;
-        }
-        else{
+        } else {
             // if the user didn't meet the requirement
             this.isPasswordReqMet = false;
             return this.isPasswordReqMet;
@@ -50,6 +51,7 @@ public class DVSPassword {
 
     /**
      * Get password
+     *
      * @return user's password
      */
     public String getPassword() {
@@ -105,10 +107,10 @@ public class DVSPassword {
         String str_array[] = this.userEnteredPassword.split("");
 
         outerLoop:
-        for (int i = 0; i < str_array.length; i++) {
+        for (String str1 : str_array) {
             int count = 0;
-            for (int j = 0; j < str_array.length; j++) {
-                if (str_array[i].equalsIgnoreCase(str_array[j])) {
+            for (String str2 : str_array) {
+                if (str1.equalsIgnoreCase(str2)) {
                     count += 1;
                     if (count > 1) {
                         this.sameCharUsedTwice = true;
@@ -122,8 +124,8 @@ public class DVSPassword {
     /**
      * Verify if the user met the password length requirement
      */
-    private void verifyPasswordLen(){
-        if ((this.userEnteredPassword.length()>= 8) && (this.userEnteredPassword.length()<=15) ){ // length checker
+    private void verifyPasswordLen() {
+        if ((this.userEnteredPassword.length() >= 8) && (this.userEnteredPassword.length() <= 15)) { // length checker
             this.passwordLenMet = true;
         }
     }
@@ -136,11 +138,33 @@ public class DVSPassword {
         isPasswordReqMet = passwordReqMet;
     }
 
-    public void printRequirementStatus(){
-        System.out.println("hasLetter:" +hasLetter+
-                "    \nhasDigit: " +hasDigit+
-                "    \nhasSpecialChar: " +hasSpecialChar+
-                "    \nsameCharUsedTwice: " +sameCharUsedTwice+
-                "    \nnoSpace: "+noSpace);
+    public void printRequirementStatus() {
+        String str = "hasLetter:" + hasLetter +
+                "    \nhasDigit: " + hasDigit +
+                "    \nhasSpecialChar: " + hasSpecialChar +
+                "    \nsameCharUsedTwice: " + sameCharUsedTwice +
+                "    \nnoSpace: " + noSpace;
+        new DVSPrinter().printWithRed(str);
+        System.out.println();
+    }
+
+    public void printAcceptablePasswordInstruction() {
+        System.out.println("\nAt least 8 character long but not more than 15" +
+                "\n Must contain at least one Upper case alphabet" +
+                "\n Must contan at least one lower case alphabet" +
+                "\n No character must appear more than once");
+
+
+    }
+
+    public void newUserPassword(){
+        while(!this.isPasswordReqMet()){ // allow the user to enter their username
+            this.setPassword();
+            if(!this.isPasswordReqMet){
+                System.out.println("Password is invalid");
+                this.printRequirementStatus();
+            }
+        }
+
     }
 }

@@ -7,13 +7,18 @@ import java.io.IOException;
 
 /**
  * DVSDisplay
+ * This is the class responsible for handling all the displays
  * @author Francis Obiagwu
  * @version 1
  * @date 5/23/2018
  */
-public class DVSDisplay implements Display{
-    private String path = null;
+public class DVSDisplay implements DVSDisplayInterface {
+    private String path = null;  // path where file to be displayed is stored or located
 
+
+    /**
+     * Method to display image to the user
+     */
     public void picture(){
         try {
             BufferedImage image;
@@ -32,6 +37,9 @@ public class DVSDisplay implements Display{
         }
     }
 
+    /**
+     * Method used to display or open excel files
+     */
     @Override
     public void excel() {
 
@@ -44,12 +52,20 @@ public class DVSDisplay implements Display{
 
     }
 
+    /**
+     * Method used to display or open graph related formats
+     */
     @Override
     public void graph() {
         System.out.println("Displaying graph file");
 
     }
 
+
+    /**
+     * Set location of the file to be opened or displayed
+     * @param path
+     */
     public void setPath(String path) {
         this.path = path;
     }

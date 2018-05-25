@@ -10,38 +10,48 @@
 public class DVSClient {
 
     public static void main(String[] args) {
-        DVSInstructions dvsInstruction = new DVSInstructions();
 
+        DVSPrinter printer = new DVSPrinter();
+        DVSInstructions dvsInstruction = new DVSInstructions();
         DVSSecurityQuestions securityQuestions = new DVSSecurityQuestions();
+
+        printer.printWithGreen(dvsInstruction.introduction);
+        System.out.println(dvsInstruction.features);
         System.out.println(dvsInstruction.openingInstruction);
+
+        System.out.print("\n> ");
         int userSelection = DVSGetInteger.getInt();
         DVSUsername dvsUsername = new DVSUsername();
+        DVSUser user = new DVSUser();
+        DVSUser.DVSNewUser newUser = new DVSUser.DVSNewUser();
         DVSPassword dvsPassword = new DVSPassword();
         DVSSecurityQuestions dvsSecurityQuestionsObj = new DVSSecurityQuestions();
 
         switch (userSelection){
             case 1:
-                dvsUsername.setUsername(); // allow the user to enter their username
-                dvsPassword.setPassword(); // allow the user to enter their password
-
-                // verify if the user input meets the username and password requirement
-                if(dvsPassword.isPasswordReqMet() && dvsUsername.isUsernameReqMet()){
-                    // now interact with the database to verify if the credentials are valid
-                    //if credentials are valid
-                    System.out.println(dvsInstruction.visualizationInstruction);
-                }
-                else{
-                    dvsUsername.printRequirementStatus();
-                    dvsPassword.printRequirementStatus();
-                    System.out.println("Credentials are invalid");
-                }
+                user.getUsernameAndPassword();
+                // now interact with the database to verify if the credentials are valid
+                //if credentials are valid
+                System.out.println();
+                printer.printWithYellow(dvsInstruction.line);
+                printer.printWithYellow("\nSelect visualization option");
+                System.out.println("\n"+dvsInstruction.visualizationInstruction);
 
                 break;
 
             case 2:
-                dvsUsername.setUsername();
-                System.out.println("--------------------------");
-                dvsPassword.setPassword();
+                printer.printWithCyan(dvsInstruction.line);
+                printer.printWithCyan("\nUsername creation requirement");
+                dvsUsername.printAcceptableUsernameInstruction();
+                newUser.setUsername();
+                System.out.println(dvsInstruction.line);
+                printer.printWithCyan(dvsInstruction.line);
+                printer.printWithCyan("\nAcceptable password");
+                dvsPassword.printAcceptablePasswordInstruction();
+                newUser.setPassword();
+                printer.printWithCyan(dvsInstruction.line);
+                System.out.println();
+                printer.printWithCyan("Security questions");
                 dvsSecurityQuestionsObj.setUserSecurityQuestionsAndAnswers();
                 break;
 

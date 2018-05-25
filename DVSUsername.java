@@ -3,6 +3,7 @@ import java.util.Scanner;
 /**
  * DVSUsername
  * Use this class to create username object
+ *
  * @author Francis Obiagwu
  * @version 1
  * @date 5/23/2018
@@ -21,6 +22,7 @@ public class DVSUsername {
 
     /**
      * Used to obtain and set username for the user
+     *
      * @return boolean
      */
 
@@ -33,6 +35,7 @@ public class DVSUsername {
 
     /**
      * Get the user's username
+     *
      * @return username
      */
 
@@ -56,23 +59,31 @@ public class DVSUsername {
      * Verify if the user's entered value have the first three characters as alphabets
      */
     private void verifyFirstThreeChar() {
-        char ch[] = this.usernameEntered.toCharArray();
-        int count = 0;
 
-        for (int i = 0; i < this.NUMBER_OF_LETTERS; i++) {
-            if (Character.toString(ch[i]).matches(".*[a-z].*")) { // check for alphabet
-                count += 1;
+        if(this.usernameEntered.length()>=this.NUMBER_OF_LETTERS){// if the user input is upto 3 characters then we check, otherwise, we ignore
+            char ch[] = this.usernameEntered.toCharArray();
+            int count = 0;
 
+            for (int i = 0; i < this.NUMBER_OF_LETTERS; i++) {
+                if (Character.toString(ch[i]).matches(".*[a-z].*")) { // check for alphabet
+                    count += 1;
+
+                } else {
+                    break;
+                }
+
+            }
+            if (count == this.NUMBER_OF_LETTERS) {
+                this.isFirstThreeCharAlpha = true;
             } else {
-                break;
+                this.isFirstThreeCharAlpha = false;
             }
 
         }
-        if (count == this.NUMBER_OF_LETTERS) {
-            this.isFirstThreeCharAlpha = true;
-        } else {
+        else{
             this.isFirstThreeCharAlpha = false;
         }
+
     }
 
     /**
@@ -80,25 +91,33 @@ public class DVSUsername {
      */
 
     private void verifyLastThreeChar() {
-        char ch[] = this.usernameEntered.toCharArray();
-        int count = 0;
-
-        for (int i = 3; i < this.USERNAME_LENGTH; i++) {
-            if (Character.toString(ch[i]).matches(".*[0-9].*")) { // check for digit
-                count += 1;
-            } else {
-                break;
+        if(this.usernameEntered.length()>=this.NUMBER_OF_DIGITS){ // if the user input is upto 3 characters then we check, otherwise, we ignore
+            char ch[] = this.usernameEntered.toCharArray();
+            int count = 0;
+            for (int i = this.usernameEntered.length() - 1; i >= this.NUMBER_OF_DIGITS; i--) {
+                if (Character.toString(ch[i]).matches(".*[0-9].*")) { // check for digit
+                    count += 1;
+                } else {
+                    break;
+                }
             }
+            if (count == this.NUMBER_OF_DIGITS) {
+                this.isLastThreeCharDigits = true;
+            } else {
+                this.isLastThreeCharDigits = false;
+            }
+
         }
-        if (count == this.NUMBER_OF_DIGITS) {
-            this.isLastThreeCharDigits = true;
-        } else {
+        else{
             this.isLastThreeCharDigits = false;
         }
+
+
     }
 
     /**
      * Verify if the user met all the requirements necessary for a valid username to be created.
+     *
      * @return boolean
      */
 
@@ -123,10 +142,22 @@ public class DVSUsername {
         return isUsernameReqMet;
     }
 
-    public void printRequirementStatus(){
-        System.out.println("isUsernameLengthMet: " +isUsernameReqMet+
-                "    \nisFirstThreeCharAlpha: " +isFirstThreeCharAlpha+
+    public void printRequirementStatus() {
+        System.out.println("isUsernameLengthMet: " + isUsernameReqMet+
+                "    \nisFirstThreeCharAlpha: " + isFirstThreeCharAlpha +
                 "    \nisLastThreeCharDigits: " + isLastThreeCharDigits);
 
     }
+
+    public void printAcceptableUsernameInstruction() {
+        System.out.println("\nMust be 6 characters long" +
+                "\nThe first 3 characters must be alphabet" +
+                "\nThe last 3 characters must be numbers");
+
+    }
+
+
+
+
+
 }

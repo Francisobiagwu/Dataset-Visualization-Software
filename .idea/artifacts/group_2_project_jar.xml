@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="group-2-project:jar">
+    <output-path>$PROJECT_DIR$/src/main/artifacts/group_2_project_jar</output-path>
+    <root id="archive" name="group-2-project.jar">
+      <element id="module-output" name="group-2-project" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/JCDP-2.0.3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jansi-1.15.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
