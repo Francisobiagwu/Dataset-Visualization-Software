@@ -11,9 +11,9 @@ This software is a client-server architecture, therefore, therefore, server will
 
 Prerequisities
 -----------------------------------------
-jdk, jre, cmd, IDE
-Acceptable data formats for upload: .png,  .jpg, .txt.<br />
-Available display format: xlsx, .jpg, png.
+- jdk, jre, cmd, IDE
+- Acceptable data formats for upload: .png,  .jpg, .txt.<br />
+- Available display format: xlsx, .jpg, png.
 
 Installing
 -----------------------------------------
