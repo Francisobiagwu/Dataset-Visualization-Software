@@ -67,6 +67,9 @@ public class DVSPassword {
         } else if (userEnteredPassword.matches(".*[A-Z].*")) { // check for uppercase
             this.hasLetter = true;
         }
+        else{
+            this.hasLetter = false;
+        }
     }
 
     /**
@@ -77,6 +80,9 @@ public class DVSPassword {
         if (this.userEnteredPassword.matches(".*[0-9].*")) { // check for digit
             this.hasDigit = true;
 
+        }
+        else{
+            this.hasDigit = false;
         }
     }
 
@@ -117,6 +123,9 @@ public class DVSPassword {
                         break outerLoop;
                     }
                 }
+                else {
+                    this.sameCharUsedTwice = false;
+                }
             }
         }
     }
@@ -127,6 +136,9 @@ public class DVSPassword {
     private void verifyPasswordLen() {
         if ((this.userEnteredPassword.length() >= 8) && (this.userEnteredPassword.length() <= 15)) { // length checker
             this.passwordLenMet = true;
+        }
+        else {
+            this.passwordLenMet = false;
         }
     }
 
