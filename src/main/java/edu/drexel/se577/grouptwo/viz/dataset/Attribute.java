@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.HashMap;
+import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public interface Attribute {
 
@@ -78,8 +80,12 @@ public interface Attribute {
     public static final class Enumerated implements Attribute {
         public final Set<String> choices;
 
-        private Enumerated(Set<String> choices) {
+        public Enumerated(Set<String> choices) {
             this.choices = Collections.unmodifiableSet(choices);
+        }
+
+        public Enumerated(String... choices) {
+            this(Stream.of(choices).collect(Collectors.toSet()));
         }
 
         @Override

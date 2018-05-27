@@ -15,11 +15,17 @@ final class Datasets {
 
     static interface Handler {
         DatasetRef[] all();
+        DatasetRep forId(String id);
     }
 
     final String all() {
         return gson.toJson(handler.all());
     }
+
+    final String getDataset(String id) {
+        return gson.toJson(handler.forId(id));
+    }
+
     private final static class DemoHandler implements Handler {
         @Override
         public DatasetRef[] all() {
@@ -27,6 +33,17 @@ final class Datasets {
             demo.name = "Demo Dataset";
             demo.location = URI.create("/api/datasets/not-final");
             return Stream.of(demo).toArray(DatasetRef[]::new);
+        }
+
+        public DatasetRep forId(String id) {
+            DatasetRep rep = new DatasetRep();
+            Definition definition = new Definition("Demo Dataset");
+            definition.put("temperature", new Attribute.FloatingPoint(30.0, -5.0));
+            definition.put("capacity", new Attribute.Int(500, 10));
+            definition.put("color",  new Attribute.Enumerated("Green", "Yellow", "Blue"));
+            definition.put("comment", new Attribute.Arbitrary());
+            rep.definition = convert(definition);
+            return rep;
         }
     }
 
@@ -44,6 +61,10 @@ final class Datasets {
                     () ->  new Datasets(new DemoHandler())));
 
         return instance.get();
+    }
+
+    static class DatasetRep {
+        DefinitionRep definition;
     }
 
     static class DefinitionRep {
@@ -119,6 +140,8 @@ final class Datasets {
             tmp.name = name;
             tmp.type = "enumerated";
             tmp.values = attr.choices.toArray(new String[0]);
+
+            product = Optional.of(tmp);
         }
 
         @Override
@@ -129,6 +152,8 @@ final class Datasets {
             tmp.bounds = new DefinitionRep.Bounds();
             tmp.bounds.upper = attr.max;
             tmp.bounds.lower = attr.min;
+
+            product = Optional.of(tmp);
         }
     }
 }
