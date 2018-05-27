@@ -1,10 +1,13 @@
 package edu.drexel.se577.grouptwo.viz;
 
 import com.google.gson.Gson;
+import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.net.URI;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 
@@ -37,12 +40,19 @@ final class Datasets {
 
         public DatasetRep forId(String id) {
             DatasetRep rep = new DatasetRep();
+            Map<String, Object> sample = new HashMap<>();
+            sample.put("temperature", Double.valueOf(25.0));
+            sample.put("capacity", Integer.valueOf(100));
+            sample.put("color", "Green");
+            sample.put("comment", "I don't know how this will be used");
             Definition definition = new Definition("Demo Dataset");
             definition.put("temperature", new Attribute.FloatingPoint(30.0, -5.0));
             definition.put("capacity", new Attribute.Int(500, 10));
             definition.put("color",  new Attribute.Enumerated("Green", "Yellow", "Blue"));
             definition.put("comment", new Attribute.Arbitrary());
             rep.definition = convert(definition);
+            rep.samples = Stream.of(sample,sample,sample)
+                .collect(Collectors.toList());
             return rep;
         }
     }
@@ -65,6 +75,7 @@ final class Datasets {
 
     static class DatasetRep {
         DefinitionRep definition;
+        List<Map<String, Object>> samples; // This is probably serialize only
     }
 
     static class DefinitionRep {
