@@ -86,23 +86,5 @@ public class CSVInputHandler implements FileInputHandler {
     }
 
 
-//        public static void main(String[] args) {
-//        CSVInputHandler csvInputHandler = new CSVInputHandler();
-//        byte b[] = new byte[1024];
-//        try {
-//
-//            FileInputStream fileInputStream = new FileInputStream("test.csv");
-//            fileInputStream.read(b);
-//            fileInputStream.close();
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        csvInputHandler.parseFile(b);
-//
-//
-//    }
 
 }
