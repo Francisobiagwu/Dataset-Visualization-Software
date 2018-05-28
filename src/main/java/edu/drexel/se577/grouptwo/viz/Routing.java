@@ -22,6 +22,7 @@ import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import java.util.Optional;
 
 public abstract class Routing {
@@ -32,6 +33,7 @@ public abstract class Routing {
 
     private static final URI DATASETS_PATH = URI.create("/api/datasets/");
     private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(Sample.class, new SampleGsonAdapter())
         .registerTypeAdapter(Value.class, new ValueGsonAdapter())
         .create();
 
@@ -54,23 +56,25 @@ public abstract class Routing {
 
     final String selectDataset(String id) {
         return getDataset(id)
-            .map(dataset -> {
-                DatasetRep rep = new DatasetRep();
-                rep.definition = convert(dataset.getDefinition());
-                rep.samples = dataset.getSamples().stream()
-                    .map(sample -> {
-                        final Map<String, Value> mapping = new HashMap<>();
-                        sample.getKeys().stream()
-                            .forEach(name -> {
-                                sample.get(name).ifPresent(value -> {
-                                    mapping.put(name, value);
-                                });
-                            });
-                        return mapping;
-                    }).collect(Collectors.toList());
-                return gson.toJson(rep);
-            }).orElse(null);
+            .map(Routing::serializeDataset)
+            .orElse(null);
     };
+
+    final static String serializeDataset(Dataset dataset) {
+        DatasetRep rep = new DatasetRep();
+        rep.definition = convert(dataset.getDefinition());
+        rep.samples = dataset.getSamples();
+        return gson.toJson(rep);
+    }
+
+    final String appendSample(String id, String body) {
+        final Sample sample = gson.fromJson(body, Sample.class);
+        return getDataset(id)
+            .map(dataset -> {
+                dataset.addSample(sample);
+                return serializeDataset(dataset);
+            }).orElse(null);
+    }
 
     final URI instanciateDefinition(String body) {
         DefinitionRep rep = gson.fromJson(body, DefinitionRep.class);
@@ -96,7 +100,7 @@ public abstract class Routing {
 
     static class DatasetRep {
         DefinitionRep definition;
-        List<Map<String, Value>> samples; // This is probably serialize only
+        List<Sample> samples; // This is probably serialize only
     }
 
     static class DefinitionRep {
@@ -123,6 +127,43 @@ public abstract class Routing {
             .map(name -> AttributeSerializer.forName(name, def))
             .toArray(DefinitionRep.Attribute[]::new);
         return rep;
+    }
+
+    private static final class SampleGsonAdapter implements JsonSerializer<Sample>, JsonDeserializer<Sample> {
+        @Override
+        public JsonElement serialize(
+                final Sample sample,
+                java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context)
+        {
+            final JsonObject obj = new JsonObject();
+            sample.getKeys().stream()
+                .forEach(name -> {
+                    sample.get(name).ifPresent(value -> {
+                        obj.add(name,context.serialize(value, Value.class));
+                    });
+                });
+            return obj;
+        }
+
+        @Override
+        public Sample deserialize(
+                JsonElement json,
+                java.lang.reflect.Type typeOfT,
+                JsonDeserializationContext context)
+        {
+            final Sample sample = new Sample();
+            if (!json.isJsonObject()) throw new JsonParseException(
+                    "Sample not formatted correctly");
+            final JsonObject asObject = json.getAsJsonObject();
+            asObject.keySet().stream()
+                .forEach(key -> {
+                    sample.put(key, context.deserialize(
+                                asObject.get(key),
+                                Value.class));
+                });
+            return sample;
+        }
     }
 
     private static final class ValueGsonAdapter implements JsonDeserializer<Value>, JsonSerializer<Value> {
@@ -237,22 +278,9 @@ public abstract class Routing {
 
     private static Route postSample = (request, reply) -> {
         String id = request.params(":id");
-        return null;
+        return getInstance().appendSample(id, request.body());
     };
 
-
-    public static void main(String[] args) {
-        Spark.staticFileLocation("/public");
-        Spark.path("/api", () -> {
-            Spark.path("/datasets", () -> {
-                Spark.get("", Routing.getDefinitions);
-                Spark.post("", Routing.postDefinition);
-                Spark.get("/:id", Routing.getDataset);
-                Spark.post("/:id", Routing.postSample);
-            });
-        });
-        Spark.init();
-    }
 
     private static Routing instance = null;
 
@@ -323,5 +351,18 @@ public abstract class Routing {
 
             product = Optional.of(tmp);
         }
+    }
+
+    public static void main(String[] args) {
+        Spark.staticFileLocation("/public");
+        Spark.path("/api", () -> {
+            Spark.path("/datasets", () -> {
+                Spark.get("", Routing.getDefinitions);
+                Spark.post("", Routing.postDefinition);
+                Spark.get("/:id", Routing.getDataset);
+                Spark.post("/:id", Routing.postSample);
+            });
+        });
+        Spark.init();
     }
 }
