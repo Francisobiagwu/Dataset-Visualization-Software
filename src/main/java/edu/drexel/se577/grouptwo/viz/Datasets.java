@@ -1,6 +1,12 @@
 package edu.drexel.se577.grouptwo.viz;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -10,15 +16,60 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
 
 final class Datasets {
     private static Optional<Datasets> instance = Optional.empty();;
-    private static final Gson gson = new Gson();
+    private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(Value.class, new ValueDeserializer())
+        .create();
     private final Handler handler;
 
+    // This will probably need to change a bit before the merge request.
+    // for now it should do for driving API format testing.
     static interface Handler {
         DatasetRef[] all();
         DatasetRep forId(String id);
+        DatasetRep postDefinition(Definition def);
+    }
+
+    private static final class ValueDeserializer implements JsonDeserializer<Value> {
+        private static final String INTEGER = "integer";
+        private static final String FLOAT = "floating-point";
+        private static final String ENUMERATED = "enumerated";
+        private static final String ARBITRARY = "arbitrary";
+
+        @Override
+        public Value deserialize(
+                JsonElement json,
+                java.lang.reflect.Type typeOfT,
+                JsonDeserializationContext context)
+        {
+            if (!json.isJsonObject()) throw new JsonParseException(
+                    "Sample value formatted incorrectly");
+            JsonObject asObject = json.getAsJsonObject();
+            if (!asObject.has("type")) throw new JsonParseException(
+                    "Missing type attribute");
+
+            String type = asObject.getAsJsonPrimitive("type").getAsString();
+
+            switch (type) {
+            case INTEGER:
+                return new Value.Int(asObject.getAsJsonPrimitive("value")
+                        .getAsInt());
+            case FLOAT:
+                return new Value.FloatingPoint(
+                        asObject.getAsJsonPrimitive("value").getAsDouble());
+            case ENUMERATED:
+                return new Value.Enumerated(
+                        asObject.getAsJsonPrimitive("value").getAsString());
+            case ARBITRARY:
+                return new Value.Arbitrary(
+                        asObject.getAsJsonPrimitive("value").getAsString());
+            default:
+                throw new JsonParseException("Unknown type attribute");
+            }
+        }
     }
 
     final String all() {
@@ -27,6 +78,21 @@ final class Datasets {
 
     final String getDataset(String id) {
         return gson.toJson(handler.forId(id));
+    }
+
+    /**
+     * Create a new dataset and retrieve it's URI.
+     * <p>
+     * The URI provide is only a fragment. It's meant to be incorporated into
+     * a larger URI.
+     *
+     * @param body The body of the POST request sent to create the dataset.
+     */
+    final URI createDataset(String body) {
+        System.err.println(body);
+        DefinitionRep rep = gson.fromJson(body, DefinitionRep.class);
+        System.err.println(rep.toString());
+        return URI.create("any-old-id");
     }
 
     private final static class DemoHandler implements Handler {
@@ -54,6 +120,10 @@ final class Datasets {
             rep.samples = Stream.of(sample,sample,sample)
                 .collect(Collectors.toList());
             return rep;
+        }
+
+        public DatasetRep postDefinition(Definition def) {
+            return forId("any");
         }
     }
 
@@ -92,7 +162,7 @@ final class Datasets {
             String[] values; // Conditionally present
         }
         String name;
-        Attribute[] attributes;
+        DefinitionRep.Attribute[] attributes;
     }
 
     private static DefinitionRep convert(final Definition def) {
