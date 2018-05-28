@@ -34,7 +34,7 @@ public class CSVInputHandler implements FileInputHandler {
                 if(numColumns == Integer.MAX_VALUE){
                     numColumns = nextLine.length; // set the real value for the number of columns
                 }
-                if(numColumns != nextLine.length){ //for some csv, the number of columns may decrease of change, we want to ignore those rows
+                if(numColumns != nextLine.length){ //for some csv, the number of columns may decrease/change before, during operation, we want to stop reading once we discover uneven number of columns
                     break;
                 }
                 else{
