@@ -7,7 +7,6 @@ import java.io.*;
 
 /**
  * FileInputHandler
- *
  * @author Francis Obiagwu
  * @version 1
  * @date 5/27/2018
@@ -22,7 +21,11 @@ public interface FileInputHandler {
 
         @Override
         public FileContents parseFile(byte[] inputBuffer) {
-            csvReader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(inputBuffer)));
+            try {
+                csvReader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(inputBuffer)));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             return new FileContents() {
                 @Override
@@ -45,6 +48,7 @@ public interface FileInputHandler {
         public FileContents parseFile(byte[] inputBuffer) {
             try {
                 workbook = new HSSFWorkbook((new POIFSFileSystem(new ByteArrayInputStream(inputBuffer))));
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
