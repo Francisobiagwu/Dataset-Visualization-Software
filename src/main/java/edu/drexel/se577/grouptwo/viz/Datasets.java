@@ -3,9 +3,11 @@ package edu.drexel.se577.grouptwo.viz;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonSerializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonParseException;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,7 @@ import edu.drexel.se577.grouptwo.viz.dataset.Value;
 final class Datasets {
     private static Optional<Datasets> instance = Optional.empty();;
     private static final Gson gson = new GsonBuilder()
-        .registerTypeAdapter(Value.class, new ValueDeserializer())
+        .registerTypeAdapter(Value.class, new ValueGsonAdapter())
         .create();
     private final Handler handler;
 
@@ -33,11 +35,63 @@ final class Datasets {
         DatasetRep postDefinition(Definition def);
     }
 
-    private static final class ValueDeserializer implements JsonDeserializer<Value> {
+    private static final class ValueGsonAdapter implements JsonDeserializer<Value>, JsonSerializer<Value> {
         private static final String INTEGER = "integer";
         private static final String FLOAT = "floating-point";
         private static final String ENUMERATED = "enumerated";
         private static final String ARBITRARY = "arbitrary";
+
+        static class ValueSerializer implements Value.Visitor {
+            Optional<? extends JsonElement> elem = Optional.empty();
+
+            @Override
+            public void visit(Value.Int value) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("type", INTEGER);
+                obj.addProperty("value", Integer.valueOf(value.value));
+                elem = Optional.of(obj);
+            }
+
+            @Override
+            public void visit(Value.FloatingPoint value) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("type", FLOAT);
+                obj.addProperty("value", Double.valueOf(value.value));
+                elem = Optional.of(obj);
+            }
+
+            @Override
+            public void visit(Value.Enumerated value) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("type", ENUMERATED);
+                obj.addProperty("value", value.value);
+                elem = Optional.of(obj);
+            }
+
+            @Override
+            public void visit(Value.Arbitrary value) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("type", ARBITRARY);
+                obj.addProperty("value", value.value);
+                elem = Optional.of(obj);
+            }
+
+            @Override
+            public void visit(Value.Mapping mapping) {
+                // NOOP for this version
+            }
+        }
+
+        @Override
+        public JsonElement serialize(
+                Value value,
+                java.lang.reflect.Type typeOfT,
+                JsonSerializationContext context)
+        {
+            ValueSerializer ser = new ValueSerializer();
+            value.accept(ser);
+            return ser.elem.orElse(null);
+        }
 
         @Override
         public Value deserialize(
@@ -106,11 +160,11 @@ final class Datasets {
 
         public DatasetRep forId(String id) {
             DatasetRep rep = new DatasetRep();
-            Map<String, Object> sample = new HashMap<>();
-            sample.put("temperature", Double.valueOf(25.0));
-            sample.put("capacity", Integer.valueOf(100));
-            sample.put("color", "Green");
-            sample.put("comment", "I don't know how this will be used");
+            Map<String, Value> sample = new HashMap<>();
+            sample.put("temperature", new Value.FloatingPoint(25.0));
+            sample.put("capacity", new Value.Int(100));
+            sample.put("color", new Value.Enumerated("Green"));
+            sample.put("comment", new Value.Arbitrary("I don't know how this will be used"));
             Definition definition = new Definition("Demo Dataset");
             definition.put("temperature", new Attribute.FloatingPoint(30.0, -5.0));
             definition.put("capacity", new Attribute.Int(500, 10));
@@ -145,7 +199,7 @@ final class Datasets {
 
     static class DatasetRep {
         DefinitionRep definition;
-        List<Map<String, Object>> samples; // This is probably serialize only
+        List<Map<String, Value>> samples; // This is probably serialize only
     }
 
     static class DefinitionRep {

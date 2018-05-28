@@ -3,7 +3,7 @@ Software Architecture of _______________________________. This encompasses the d
 ## Building with Gradle
 
 This comes with the gradle wrapper, so all one needs to do to run the build
-is `./gradlew build` or `gradle.bat build` on windows (needs verification).
+is `./gradlew build` or `gradlew.bat build` on windows (needs verification).
 
 -----------------------------------------
 Running the software
