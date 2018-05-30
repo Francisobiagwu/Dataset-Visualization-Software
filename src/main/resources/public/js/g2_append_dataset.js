@@ -2,6 +2,7 @@ const append_dataset_component = new Vue({
     el: "#append_dataset",
     data: {
       datasets: [],
+      location: null,
       selectedDataset: null,
       newSample: null,
       selAttrib: null
@@ -97,6 +98,8 @@ const append_dataset_component = new Vue({
           this.selectedDataset.samples.push(this.newSample);
           //Vue.set(this.newSample, {});
           this.newSample = null
+
+          this.postdataset(this.selectedDataset);
         }
       },
       addDataSet(){
@@ -147,8 +150,25 @@ const append_dataset_component = new Vue({
         
       },
       getdataset(location, i) {
+        this.location = location;
         fetch("http://localhost:4567" + location, {
           method: "GET"
+        })
+        .then(response => response.json())
+        .then((data) => {
+          this.selectedDataset = data;
+        })        
+      },
+      postdataset(dataset) {
+        // TODO: REST endpoint does not exist yet...
+        
+        // location expected to be /api/datasets/:id
+        fetch("http://localhost:4567" + this.location, {
+          body: JSON.stringify(dataset),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         })
         .then(response => response.json())
         .then((data) => {
@@ -175,14 +195,14 @@ const append_dataset_component = new Vue({
     <div>
       <div class="card mb-3">
         <div class="card-header">
-          <i class="fa fa-table"></i>Server Provided Datasets</div>
+          <i class="fa fa-table"></i>Existing Datasets</div>
         <div class="card-body">
           <div class="table-responsive">        
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
                   <th>Definition Name</th>
-                  <th>Position</th>
+                  <th>Location</th>
                   <th>Select</th>
                 </tr>
               </thead>
@@ -201,11 +221,11 @@ const append_dataset_component = new Vue({
       <div v-if="selectedDataset !== null" class="card mb-3">      
         <div align="center">         
         <div>
-          <label for="attribName">Attribute Name</label>
+          <label for="attribName">Property Name</label>
           <input id="attribName" name="attribName" type="text">
         </div>
         <div>
-          <label for="attribType">Attribute Type</label>
+          <label for="attribType">Property Type</label>
           <select id="attribType" v-on:change="attribChanged()">
             <template v-for="attrib, i in selectedDataset.definition.attributes">  
               <option>{{attrib.type}}</option>
@@ -240,7 +260,7 @@ const append_dataset_component = new Vue({
           <div v-else>
             <!-- name(string) type(string) values(array) value(selected option) -->
             <div>
-              <label for="attribSelValue">Attribute Type</label>
+              <label for="attribSelValue">Property Type</label>
               <select id="attribSelValue">
                 <template v-for="value, i in selAttrib.values">  
                   <option>{{value}}</option>
@@ -265,9 +285,9 @@ const append_dataset_component = new Vue({
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                  <th>Attribute Name</th>
-                  <th>Attribute Type</th>
-                  <th>Attribute Values</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Values</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,16 +314,16 @@ const append_dataset_component = new Vue({
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
+                  <th>Sample</th>
                   <th>Name</th>
-                  <th>Attribute Name</th>
-                  <th>Attribute Type</th>
-                  <th>Attribute Values</th>
+                  <th>Type</th>
+                  <th>Values</th>
                 </tr>
               </thead>
               <tbody>
                 <template v-for="sample, s in selectedDataset.samples">
                   <tr v-for="obj, o in sample">
-                    <td>Sample {{s + 1}}</td> 
+                    <td>{{s + 1}}</td> 
                     <td>{{o}}</td>
                     <td>{{obj.type}}</td>   
                     <td>{{obj.value}}</td>

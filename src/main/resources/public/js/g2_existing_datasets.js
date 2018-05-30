@@ -96,12 +96,10 @@ const existing_datasets_component = new Vue({
                   <td>{{attrib.name}}</td>
                   <td>{{attrib.type}}</td>
                   <td>{{attrib.values}}</td>
-                  <td><button v-on:click="getdataset(dataset.location, i)">Get Data</button></td>
                 </tr>
 
                 <tr>
                   <td>Samples</td>
-                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -112,7 +110,6 @@ const existing_datasets_component = new Vue({
                     <td>{{o}}</td>
                     <td>{{obj.type}}</td>   
                     <td>{{obj.value}}</td>
-                    <td></td>
                   </tr>
                 </template>
                 </tr>
