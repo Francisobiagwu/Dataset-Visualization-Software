@@ -3,13 +3,13 @@ const upload_dataset_component = new Vue({
     data: {
       datasets: []
     },
-    methods: { 
+    methods: {
     attemptUpload() {        
         var input = document.querySelector('input[type="file"]')
-        var name = document.getElementById("name").value;        
+        var dataSetName = document.getElementById("name").value; 
         var error = document.getElementById("error");
         
-        if( name !== "" ) {
+        if( dataSetName !== "" ) {
           function handleErrors(response) {
             if (!response.ok) {
                 throw Error(response.statusText);
@@ -25,21 +25,34 @@ const upload_dataset_component = new Vue({
               error.innerText = status;
           }
           
-          // XLS = "application/vnd.ms-excel"
-          // XLSX = application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+          // Content-types
+          // CSV and XLS : "application/vnd.ms-excel"
+          // XLSX : application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 
-          var file = input.files[0];
 
-          if(input === null || input.files.length === 0 || file === null){
+          if(input === null || input.files === null || input.files.length === 0){
             log("Select a file.");
             return;
           }
 
-          fetch("http://localhost:4567/api/datasets/file", {
+          var file = input.files[0];
+          var type = file.type;
+          var fname = file.name;
+
+          if(type === ""){
+            var ext = fname.slice((Math.max(0, fname.lastIndexOf(".")) || Infinity) + 1);
+            if(ext === null || ext === undefined){
+              log("Unable to determine file type. Select a file with an extension.");
+              return;
+            }
+            type = "application/" + ext;
+          }
+
+          fetch("http://localhost:4567/api/datasets?name=" + dataSetName, {
             body: file,
             method: "POST",
             headers: {
-              "Content-Type": file.type,
+              "Content-Type": type,
             },
           })
           .then(handleErrors).then(

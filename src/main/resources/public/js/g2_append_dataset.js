@@ -3,51 +3,140 @@ const append_dataset_component = new Vue({
     data: {
       datasets: [],
       selectedDataset: null,
-      newDataset: null,
+      newSample: null,
       selAttrib: null
     },
     methods: {
+      log(status){
+        var error = document.getElementById("error");
+        console.log(status);
+        if (typeof status.statusText != 'undefined')
+          error.innerText = status.statusText;
+        else
+          error.innerText = status;
+      },
+      createSampleObject(){
+        var aValue = null;
+        var aLower = null;
+        var aUpper = null;
+        var aType = this.selAttrib.type;
+        var aName = document.getElementById("attribName").value;
+        
+        if(!aName){
+          this.log("Please provide a name for the sample attribute.");
+          return null;
+        } 
+
+        // Check bounds when applicable so value can be bounded.
+        if(aType === "floating-point" || 
+          aType === "integer"){
+          // Get bounds
+          aLower = document.getElementById("attribLower").value;
+          aUpper = document.getElementById("attribUpper").value;
+          
+          if(!aLower){
+            this.log("Please specify lower bounds.");
+            return null;
+          }
+
+          if(!aUpper){
+            this.log("Please specify upper bounds.");
+            return null;
+          }
+
+          if(aLower > aUpper){
+            this.log("Lower must be lower than or equal to upper.");
+            return null;
+          }
+        }
+
+        if(aType === "enumerated"){
+          var e = document.getElementById("attribSelValue");
+          aValue = e.options[e.selectedIndex].text;
+        } else {
+          aValue = document.getElementById("attribValue").value;
+        }
+
+        if(!aValue){
+          this.log("Please specify value.");
+          return null;
+        }
+        
+        // Check bounded value when applicable.
+        if(aType === "floating-point" || 
+          aType === "integer"){
+          if(aValue < aLower){
+            this.log("Value must be greater than or equal to lower.");
+            return null;
+          }
+
+          if(aValue > aUpper){
+            this.log("Value must be less than or equal to upper.");
+          }
+        }
+
+        return {"name" : aName, "payload" : {"type" : aType, "value" : aValue}};
+      },
       attribChanged(){
         var e = document.getElementById("attribType");
         //var value = e.options[e.selectedIndex].value;
-        this.selAttrib = e.options[e.selectedIndex].text;
+        var cboAttrib = e.options[e.selectedIndex].text;
         
-        
-
-        console.log("Attrib Set to: " + this.selAttrib);
+        var attribs = this.selectedDataset.definition.attributes;
+        var found = null;
+        for (var i in attribs) {
+          if(attribs[i].type === cboAttrib){
+            this.selAttrib = attribs[i];
+            break;
+          }
+        }
+        this.log("Attrib Set to: " + this.selAttrib);
+      },
+      addSampleToSelDefn() {
+        if(this.newSample && this.selectedDataset){
+          this.selectedDataset.samples.push(this.newSample);
+          //Vue.set(this.newSample, {});
+          this.newSample = null
+        }
       },
       addDataSet(){
         if(this.selectedDataset === null)
           return;
 
-        function Dataset (defn) {
-          this.definition = defn;
-          this.samples = []; 
+        this.attribChanged();
+
+        if(!this.selAttrib){
+          this.log("Please select an attribute type.");
+          return;
         }
-                       
-        Dataset.prototype.addSample = function(attrib, type, value) {
-          this.samples.push({attrib : {type, value}});
-        };
-        
-        if( this.newDataset === null)
-          this.newDataset = new Dataset(this.selectedDataset.definition);
-          var e = document.getElementById("attribType");
-          //var value = e.options[e.selectedIndex].value;
-          var text = e.options[e.selectedIndex].text;
+
+        var inputObj = this.createSampleObject();
+
+        if(inputObj != null) {
+          // We've got valid inputs, add the sample...
+
+          // function Dataset (defn) {
+          //   this.definition = defn;
+          //   this.samples = []; 
+          // }
+
+          // Dataset.prototype.addSample = function(attrib, type, value) {          
+          //   //this.samples.push(inputObj);
+          //   //this.samples.push({attrib : {type, value}});
+          //   this.samples.push({attrib : {type, value}});
+          // };
           
-          var found = this.selectedDataset.definition.attributes.find(function(element) {
-            if(element.name === text)
-              return element;
-            return null;
-          });
-
-          if(found !== null){
-            this.newDataset.addSample(found.name, found.type, found.values);
+          if(!this.newSample){
+            this.newSample = {};
           }
+          
+          Vue.set(this.newSample, inputObj.name, inputObj.payload)
+          //this.newSample[inputObj.name] = inputObj.payload;
 
-          // this.newDataset.addSample("temperature", "floating-point", 75);
-
-        console.log(this.newDataset);
+          // this.newDataset.addSample(inputObj);
+                    
+          this.log("Dataset added.");
+        }
       },
       setSampleName(location, i) {
 
@@ -70,7 +159,7 @@ const append_dataset_component = new Vue({
     computed: {
       getSampleCount(){
         if(this.selectedDataset.samples !== undefined || this.selectedDataset.samples != null){
-          return this.selectedDataset.samples.length;     
+          return this.selectedDataset.samples.length + 1;     
         }
         return 1;
       }
@@ -109,69 +198,93 @@ const append_dataset_component = new Vue({
         </div>
       </div>
 
-      <div v-if="selectedDataset !== null" class="card mb-3">
-        <div align="center">
-          <label for="type">Attribute Type</label>
+      <div v-if="selectedDataset !== null" class="card mb-3">      
+        <div align="center">         
+        <div>
+          <label for="attribName">Attribute Name</label>
+          <input id="attribName" name="attribName" type="text">
+        </div>
+        <div>
+          <label for="attribType">Attribute Type</label>
           <select id="attribType" v-on:change="attribChanged()">
             <template v-for="attrib, i in selectedDataset.definition.attributes">  
               <option>{{attrib.type}}</option>
             </template>
           </select>
-
-          <div v-if="selAttrib !== null">
-            <div v-if="selAttrib === 'enumerated'">
-              <label for="type">Attribute Type</label>
-              <select id="attribType" v-on:change="attribChanged()">
-                <template v-for="attrib, i in selectedDataset.definition.attributes">  
-                  <option>{{attrib.type}}</option>
+        </div>
+        <div v-if="selAttrib !== null"> 
+          <input id="attribType" name="attribType" type="hidden" v-model="selAttrib.type">
+          <div v-if="selAttrib.type === 'floating-point'">
+            <!-- name(string) type(string) bounds(obj : lower : value, upper : value)  value(string)-->
+            <label for="attribValue">Value:</label>
+            <input id="attribValue" name="attribValue"  type="text">
+            <label for="attribUpper">Upper Bounds:</label>
+            <input id="attribUpper" name="attribUpper"  type="text">
+            <label for="attribLower">Lower Bounds:</label>
+            <input id="attribLower" name="attribLower"  type="text"> 
+          </div>
+          <div v-else-if="selAttrib.type === 'arbitrary'">    
+            <!-- name(string) type(string) value(string) -->
+            <label for="attribValue">Value:</label>
+            <input id="attribValue" name="attribValue"  type="text">  
+          </div>
+          <div v-else-if="selAttrib.type === 'integer'">
+            <!-- name(string) type(string) bounds(obj : lower : value, upper : value) -->
+            <label for="attribValue">Value:</label>
+            <input id="attribValue" name="attribValue"  type="text">
+            <label for="attribUpper">Upper Bounds:</label>
+            <input id="attribUpper" name="attribUpper"  type="text">
+            <label for="attribLower">Lower Bounds:</label>
+            <input id="attribLower" name="attribLower"  type="text">  
+          </div>
+          <div v-else>
+            <!-- name(string) type(string) values(array) value(selected option) -->
+            <div>
+              <label for="attribSelValue">Attribute Type</label>
+              <select id="attribSelValue">
+                <template v-for="value, i in selAttrib.values">  
+                  <option>{{value}}</option>
                 </template>
               </select>
             </div>
-            <div v-else-if="type === 'floating-point'">
-            
-              <input id = "name" name = "name" type = "text">
-            </div>
-            <div v-else-if="type === 'arbitrary'">
-            
-            </div>
-            <div v-else-if="type === 'integer'">
-            
-            </div>
-            <div v-else>
-              
-            </div>
           </div>
-
         </div>
-        <button v-on:click="addDataSet(selectedDataset)">Add</button>
+        <button v-model="newSample" id="add" v-on:click="addDataSet()">Add</button>          
+        <label for="add">
+          <span class="error" name="error" id="error"></span>
+        </label>
+      </div>
       </div>
 
-      <div v-if="newDataset !== null" class="card mb-3">
+      <div v-if="newSample !== null" class="card mb-3">
         <div class="card-header">
-          <i class="fa fa-table"></i>Sample {{getSampleCount}}</div>
+          <i class="fa fa-table"></i>Sample {{getSampleCount}}
+        </div>
         <div class="card-body">
           <div class="table-responsive">        
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                  <th>Sample Name</th>
                   <th>Attribute Name</th>
                   <th>Attribute Type</th>
                   <th>Attribute Values</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="obj, o in newDataset.samples">
+                <tr v-for="obj, o in newSample">
                   <td>{{o}}</td>
                   <td>{{obj.type}}</td>   
-                  <td>{{obj.values}}</td>
+                  <td>{{obj.value}}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+        <button v-model="selectedDataset" id="append" name="append" v-on:click="addSampleToSelDefn()">Add</button>          
+        <label for="append">
+          <span class="error" name="appEndError" id="appEndError"></span>
+        </label>
       </div>
-
 
       <div v-if="selectedDataset !== null" class="card mb-3">
         <div class="card-header">
@@ -190,7 +303,7 @@ const append_dataset_component = new Vue({
               <tbody>
                 <template v-for="sample, s in selectedDataset.samples">
                   <tr v-for="obj, o in sample">
-                    <td>Sample {{s}}</td> 
+                    <td>Sample {{s + 1}}</td> 
                     <td>{{o}}</td>
                     <td>{{obj.type}}</td>   
                     <td>{{obj.value}}</td>
