@@ -79,7 +79,7 @@ public class CSVInputHandler implements FileInputHandler {
             }
 
             @Override
-            public List<Sample> getSamples() { // still be implemented, not entirely sure what needs to be done here
+            public List<Sample> getSamples() { // still needs be implemented, not entirely sure what needs to be done here
                 return null;
             }
         };
