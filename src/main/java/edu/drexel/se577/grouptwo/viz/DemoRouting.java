@@ -44,14 +44,11 @@ class DemoRouting extends Routing {
         @Override
         public Definition getDefinition() {
             Definition definition = new Definition(getName());
-            definition.put("temperature",
-                    new Attribute.FloatingPoint(30.0, -5.0));
-            definition.put("capacity",
-                    new Attribute.Int(500,10));
-            definition.put("color",
-                    new Attribute.Enumerated("Green", "Yellow", "Blue"));
-            definition.put("comment",
-                    new Attribute.Arbitrary());
+            definition.put(new Attribute.FloatingPoint(
+                        "temperature",30.0, -5.0));
+            definition.put(new Attribute.Int("capacity",500,10));
+            definition.put(new Attribute.Enumerated("color", "Green", "Yellow", "Blue"));
+            definition.put(new Attribute.Arbitrary("comment"));
             return definition;
         }
 

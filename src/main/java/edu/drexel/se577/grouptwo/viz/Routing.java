@@ -9,11 +9,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonIOException;
 import spark.Spark;
 import spark.Route;
 import java.net.URI;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -33,6 +37,8 @@ public abstract class Routing {
 
     private static final URI DATASETS_PATH = URI.create("/api/datasets/");
     private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(Definition.class, new DefinitionGsonAdapter())
+        .registerTypeAdapter(Attribute.class, new AttributeGsonAdapter())
         .registerTypeAdapter(Sample.class, new SampleGsonAdapter())
         .registerTypeAdapter(Value.class, new ValueGsonAdapter())
         .create();
@@ -62,7 +68,7 @@ public abstract class Routing {
 
     final static String serializeDataset(Dataset dataset) {
         DatasetRep rep = new DatasetRep();
-        rep.definition = convert(dataset.getDefinition());
+        rep.definition = dataset.getDefinition();
         rep.samples = dataset.getSamples();
         return gson.toJson(rep);
     }
@@ -77,56 +83,169 @@ public abstract class Routing {
     }
 
     final URI instanciateDefinition(String body) {
-        DefinitionRep rep = gson.fromJson(body, DefinitionRep.class);
-        final Definition def = new Definition(rep.name);
-        Stream.of(rep.attributes)
-            .forEach(attr -> {
-                convert(attr).ifPresent(attribute -> {
-                    def.put(attr.name, attribute);
-                });
-            });
+        Definition def = gson.fromJson(body, Definition.class);
         return DATASETS_PATH.resolve(storeDataset(def));
     }
 
-    private static Optional<Attribute> convert(DefinitionRep.Attribute attr) {
-        switch (attr.type) {
-        case INTEGER:
-        case FLOAT:
-        case ENUMERATED:
-        case ARBITRARY:
-        }
-        return Optional.empty();
-    }
-
     static class DatasetRep {
-        DefinitionRep definition;
+        Definition definition;
         List<Sample> samples; // This is probably serialize only
     }
 
-    static class DefinitionRep {
-        static class Bounds {
-            // Double used to represent integers or floating point bounds
-            // not great, but simplifies the system
-            double upper;
-            double lower;
+    private static final class AttributeGsonAdapter implements JsonSerializer<Attribute>, JsonDeserializer<Attribute> {
+        private static final class Visitor implements Attribute.Visitor {
+            private final JsonObject obj;
+            Visitor(JsonObject obj) {
+                this.obj = obj;
+            }
+            @Override
+            public void visit(Attribute.Mapping mapping) {
+                throw new JsonIOException("Serializing mapping attributes not currently supported");
+            }
+
+            @Override
+            public void visit(Attribute.Int attr) {
+                JsonObject bounds = new JsonObject();
+                obj.addProperty("type",INTEGER);
+                bounds.addProperty("max", Integer.valueOf(attr.max));
+                bounds.addProperty("min", Integer.valueOf(attr.min));
+                obj.add("bounds", bounds);
+            }
+
+            @Override
+            public void visit(Attribute.FloatingPoint attr) {
+                JsonObject bounds = new JsonObject();
+                obj.addProperty("type", FLOAT);
+                bounds.addProperty("max", Double.valueOf(attr.max));
+                bounds.addProperty("min", Double.valueOf(attr.min));
+                obj.add("bounds", bounds);
+            }
+            @Override
+            public void visit(Attribute.Enumerated attr) {
+                JsonArray choices = new JsonArray();
+                obj.addProperty("type", ENUMERATED);
+                attr.choices.stream()
+                    .forEach(choice -> choices.add(choice));
+                obj.add("values", choices);
+            }
+            @Override
+            public void visit(Attribute.Arbitrary attr) {
+                obj.addProperty("type", ARBITRARY);
+            }
         }
-        static class Attribute {
-            String name; // Always present
-            String type; // Always present
-            Bounds bounds; // Conditionally present
-            String[] values; // Conditionally present
+        @Override
+        public JsonElement serialize(
+                final Attribute attribute,
+                java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context)
+        {
+            final JsonObject obj = new JsonObject();
+            obj.addProperty("name", attribute.name());
+            attribute.accept(new Visitor(obj));
+            return obj;
         }
-        String name;
-        DefinitionRep.Attribute[] attributes;
+
+        @Override
+        public Attribute deserialize(
+                JsonElement elem,
+                java.lang.reflect.Type typeOfT,
+                final JsonDeserializationContext context)
+        {
+            final JsonObject obj = elem.getAsJsonObject();
+            final String name = obj.getAsJsonPrimitive("name").getAsString();
+            final String type = obj.getAsJsonPrimitive("type").getAsString();
+            switch (type) {
+            case INTEGER:
+                return emitInteger(name,obj);
+            case FLOAT:
+                return emitFloat(name,obj);
+            case ENUMERATED:
+                return emitEnum(name,obj);
+            case ARBITRARY:
+                return emitArb(name, obj);
+            }
+
+            throw new JsonParseException("Unknown Attribute Type");
+        }
+
+        private static Attribute.Int emitInteger(
+                String name,
+                JsonObject obj)
+        {
+            JsonObject bounds = obj.getAsJsonObject("bounds");
+            int max = bounds.getAsJsonPrimitive("max").getAsInt();
+            int min = bounds.getAsJsonPrimitive("min").getAsInt();
+            return new Attribute.Int(name,max,min);
+        }
+
+        private static Attribute.FloatingPoint emitFloat(
+                String name,
+                JsonObject obj)
+        {
+            JsonObject bounds = obj.getAsJsonObject("bounds");
+
+            double max = bounds.getAsJsonPrimitive("max").getAsDouble();
+            double min = bounds.getAsJsonPrimitive("min").getAsDouble();
+
+            return new Attribute.FloatingPoint(name, max, min);
+        }
+
+        private static Attribute.Enumerated emitEnum(
+                String name,
+                JsonObject obj)
+        {
+            final Set<String> valueSet = new HashSet<>();
+            JsonArray values = obj.getAsJsonArray("values");
+            values.iterator().forEachRemaining(elem -> {
+                valueSet.add(elem.getAsJsonPrimitive().getAsString());
+            });
+            return new Attribute.Enumerated(name, valueSet);
+        }
+
+        private static Attribute.Arbitrary emitArb(
+                String name,
+                JsonObject obj)
+        {
+            return new Attribute.Arbitrary(name);
+        }
     }
 
-    private static DefinitionRep convert(final Definition def) {
-        DefinitionRep rep = new DefinitionRep();
-        rep.name = def.name;
-        rep.attributes = def.getKeys().stream()
-            .map(name -> AttributeSerializer.forName(name, def))
-            .toArray(DefinitionRep.Attribute[]::new);
-        return rep;
+    private static final class DefinitionGsonAdapter implements JsonSerializer<Definition>, JsonDeserializer<Definition> {
+        @Override
+        public JsonElement serialize(
+                final Definition definition,
+                java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context)
+        {
+            final JsonObject obj = new JsonObject();
+            final JsonArray attributes = new JsonArray();
+            obj.addProperty("name", definition.name);
+            definition.getKeys().stream()
+                .forEach(name -> {
+                    definition.get(name).ifPresent(attr -> {
+                        attributes.add(context.serialize(attr, Attribute.class));
+                    });
+                });
+            obj.add("attributes", attributes);
+            return obj;
+        }
+        @Override
+        public Definition deserialize(
+                JsonElement json,
+                java.lang.reflect.Type typeOfT,
+                JsonDeserializationContext context)
+        {
+            if (!json.isJsonObject()) throw new JsonParseException(
+                    "Sample not formatted correctly");
+            final JsonObject asObject = json.getAsJsonObject();
+            final Definition definition = new Definition(
+                    asObject.getAsJsonPrimitive("name").getAsString());
+            JsonArray attributes = asObject.getAsJsonArray("attributes");
+            attributes.iterator().forEachRemaining(elem -> {
+                definition.put(context.deserialize(elem, Attribute.class));
+            });
+            return definition;
+        }
     }
 
     private static final class SampleGsonAdapter implements JsonSerializer<Sample>, JsonDeserializer<Sample> {
@@ -287,70 +406,6 @@ public abstract class Routing {
     static Routing getInstance() {
         instance = Optional.ofNullable(instance).orElse(new DemoRouting());
         return instance;
-    }
-
-    private static class AttributeSerializer implements Attribute.Visitor {
-        private final String name;
-        private Optional<DefinitionRep.Attribute> product;
-        private AttributeSerializer(String name) {
-            this.name = name;
-            product = Optional.empty();
-        }
-        static DefinitionRep.Attribute forName(String name, Definition def) {
-            Attribute attr = def.get(name)
-                .orElseThrow(() -> new RuntimeException("No such Attribute"));
-            AttributeSerializer ser = new AttributeSerializer(name);
-            attr.accept(ser);
-            return ser.product
-                .orElseThrow(() -> new RuntimeException("Failed to convert attribute"));
-        }
-
-        @Override
-        public void visit(Attribute.Arbitrary attr) {
-            DefinitionRep.Attribute tmp = new DefinitionRep.Attribute();
-            tmp.name = name;
-            tmp.type = "arbitrary";
-            product = Optional.of(tmp);
-        }
-
-        @Override
-        public void visit(Attribute.Mapping attr) {
-            // Tiered structures not currently supported
-        }
-
-        @Override
-        public void visit(Attribute.Int attr) {
-            DefinitionRep.Attribute tmp = new DefinitionRep.Attribute();
-            tmp.name = name;
-            tmp.type = "integer";
-            tmp.bounds = new DefinitionRep.Bounds();
-            tmp.bounds.upper = attr.max;
-            tmp.bounds.lower = attr.min;
-
-            product = Optional.of(tmp);
-        }
-
-        @Override
-        public void visit(Attribute.Enumerated attr) {
-            DefinitionRep.Attribute tmp = new DefinitionRep.Attribute();
-            tmp.name = name;
-            tmp.type = "enumerated";
-            tmp.values = attr.choices.toArray(new String[0]);
-
-            product = Optional.of(tmp);
-        }
-
-        @Override
-        public void visit(Attribute.FloatingPoint attr) {
-            DefinitionRep.Attribute tmp = new DefinitionRep.Attribute();
-            tmp.name = name;
-            tmp.type = "floating-point";
-            tmp.bounds = new DefinitionRep.Bounds();
-            tmp.bounds.upper = attr.max;
-            tmp.bounds.lower = attr.min;
-
-            product = Optional.of(tmp);
-        }
     }
 
     public static void main(String[] args) {
