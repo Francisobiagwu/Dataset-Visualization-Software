@@ -53,20 +53,20 @@ final class XLSXInputHandler implements FileInputHandler {
                     Cell cell = cellIterator.next();
 
                     switch (cell.getCellType()){
-                        case Cell.CELL_TYPE_BOOLEAN:
-//                            System.out.print(cell.getBooleanCellValue() + "\t\t"); // this section currently not used. It is provided for extensibility
+                        case Cell.CELL_TYPE_BOOLEAN: // this section currently not used. It is provided for extensibility
+//                            System.out.print(cell.getBooleanCellValue() + "\t\t"); 
                             break;
                         case Cell.CELL_TYPE_NUMERIC: //since we are only considering numeric at this time
 //                            System.out.print(cell.getNumericCellValue() + "\t\t");
                             if(count == 0){
-                                id = String.valueOf(cell.getNumericCellValue()); // this section is for extensibility
+                                id = String.valueOf(cell.getNumericCellValue()); 
                             }
                             else {
                                 values[count-1] = String.valueOf(cell.getNumericCellValue());
                             }
                             break;
 
-                        case Cell.CELL_TYPE_STRING:
+                        case Cell.CELL_TYPE_STRING: // this section is for extensibility
 //                            System.out.print(cell.getStringCellValue() + "\t\t");
                             break;
                     }
