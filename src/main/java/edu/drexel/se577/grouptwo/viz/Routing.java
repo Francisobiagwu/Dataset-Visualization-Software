@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
@@ -46,6 +48,8 @@ public abstract class Routing {
     abstract Collection<? extends Dataset> listDatasets();
     abstract Optional<? extends Dataset> getDataset(String id);
     abstract URI storeDataset(Definition def);
+    abstract Dataset createDataset(Definition def);
+    abstract Optional<? extends FileInputHandler> getFileHandler(String contentType);
 
     final String allDatasets() {
         Collection<? extends Dataset> datasets = listDatasets();
@@ -85,6 +89,23 @@ public abstract class Routing {
     final URI instanciateDefinition(String body) {
         Definition def = gson.fromJson(body, Definition.class);
         return DATASETS_PATH.resolve(storeDataset(def));
+    }
+
+    final URI processFile(String contentType, String name, byte[] body) {
+        return getFileHandler(contentType)
+            .map(handler -> {
+                FileContents contents = handler.parseFile(name, body)
+                    .orElseThrow(() -> new RuntimeException("Parsing Failed"));
+                final Dataset created =
+                    createDataset(contents.getDefinition());
+                contents.getSamples().stream()
+                    .forEach(sample -> {
+                        created.addSample(sample);
+                    });
+
+                URI id = URI.create(created.getId());
+                return DATASETS_PATH.resolve(id);
+            }).orElseThrow(() -> new RuntimeException("Bad File Type"));
     }
 
     static class DatasetRep {
@@ -383,10 +404,31 @@ public abstract class Routing {
     };
 
     private static Route postDefinition = (request, reply) -> {
-        URI location = getInstance().instanciateDefinition(request.body());
-        reply.header("Location", location.toString());
-        reply.status(201);
-        return "";
+        Optional<String> contentType = Optional
+            .ofNullable(request.headers("Content-Type"));
+        boolean isJson = contentType
+            .map(content -> content.startsWith("application/json"))
+            .orElse(false);
+        if (isJson) {
+            URI location = getInstance().instanciateDefinition(request.body());
+            reply.header("Location", location.toString());
+            reply.status(201);
+            return "";
+        } else if (contentType.isPresent()){
+            String name = Optional.ofNullable(request.queryParams("name"))
+                .orElseThrow(() -> new RuntimeException("Must specify dataset name for file input"));
+
+            URI location = getInstance().processFile(
+                    contentType.get(),
+                    name,
+                    request.bodyAsBytes());
+            reply.header("Location", location.toString());
+            reply.status(201);
+            return "";
+        } else {
+            reply.status(400);
+            return "Unrecognized content type";
+        }
     };
 
     private static Route getDataset = (request, reply) -> {

@@ -13,6 +13,8 @@ import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 
 class DemoRouting extends Routing {
     @Override
@@ -29,6 +31,35 @@ class DemoRouting extends Routing {
     @Override
     URI storeDataset(Definition def) {
         return URI.create("any-old-id");
+    }
+
+    @Override
+    Dataset createDataset(Definition def) {
+        return new DemoDataset();
+    }
+
+    @Override
+    Optional<? extends FileInputHandler> getFileHandler(String contentType) {
+        
+        return Optional.of(new DemoFileInputHandler());
+    }
+
+    private final class DemoFileInputHandler implements FileInputHandler {
+        private final Dataset model = new DemoDataset();
+
+        @Override
+        public Optional<? extends FileContents> parseFile(String name, byte[] buffer) {
+            return Optional.of(new FileContents() {
+                @Override
+                public Definition getDefinition() {
+                    return model.getDefinition();
+                }
+                @Override
+                public List<Sample> getSamples() {
+                    return model.getSamples();
+                }
+            });
+        }
     }
 
     private final class DemoDataset implements Dataset {
