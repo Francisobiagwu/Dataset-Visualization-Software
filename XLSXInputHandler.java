@@ -1,4 +1,3 @@
-
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -13,7 +12,7 @@ import java.util.*;
 
 /**
  * XLSXInputHandler
- * This class is responsible for taking parsing a bytearray of excel sheet into the required format
+ * This class is responsible for parsing a bytearray of excel sheet into the required format
  * @author Francis Obiagwu
  * @version 1
  * @date 5/28/2018
@@ -33,7 +32,7 @@ final class XLSXInputHandler implements FileInputHandler {
     public FileContents parseFile(byte[] inputBuffer) {
         try {
             Map<String, String[]> map = new HashMap<>();
-            String path = "C:\\Users\\Francis\\group-2-project-backend\\src\\OUTFile.xls"; // assign a path where to store the excel file, the current path is for testing purposes only
+            String path = "C:\\Users\\Francis\\group-2-project-backend\\src\\OUTFile.xls"; //path where to store the excel file. We are storing it first before reading because we cannot read excel file directly from bytes. (the current path is for testing purposes only)
             FileInputStream file = new FileInputStream(path);
             Path pathPath = Paths.get(path);
             Files.write(pathPath, inputBuffer);  // take the bytes received and then write them out in the specified path.
