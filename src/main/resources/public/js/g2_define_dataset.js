@@ -129,7 +129,7 @@ const define_dataset_component = new Vue({
         }        
         this.newAttributes = null
 
-        //this.postdataset(this.selectedDataset);
+        this.postdataset(this.selectedDataset);
       }
     },
     addDataSet(){
