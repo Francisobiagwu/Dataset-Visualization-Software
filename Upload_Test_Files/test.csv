@@ -1,0 +1,11 @@
+# Attributes,# Name,# Type,,,
+,temperature,floating-point,30,-55,
+,capacity,integer,500,10,
+,color,enumerated,green,yellow,blue
+,comment,arbitrary,this is a comment?,,
+,,,,,
+#Samples,,,,,
+,temperature,floating-point,25,,
+,capacity,integer,100,,
+,color,enumerated,Green,,
+,comment,arbitrary,"""I don't know how this will be used""",,

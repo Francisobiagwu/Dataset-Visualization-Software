@@ -36,17 +36,15 @@ const upload_dataset_component = new Vue({
           }
 
           var file = input.files[0];
-          var type = file.type;
+          //var type = file.type; // bah lets provide an expected value
           var fname = file.name;
-
-          if(type === ""){
-            var ext = fname.slice((Math.max(0, fname.lastIndexOf(".")) || Infinity) + 1);
-            if(ext === null || ext === undefined){
-              log("Unable to determine file type. Select a file with an extension.");
-              return;
-            }
-            type = "application/" + ext;
+          
+          var ext = fname.slice((Math.max(0, fname.lastIndexOf(".")) || Infinity) + 1);
+          if(ext === null || ext === undefined){
+            log("Unable to determine file type. Select a file with an extension.");
+            return;
           }
+          var type = "application/" + ext;          
 
           fetch("http://localhost:4567/api/datasets?name=" + dataSetName, {
             body: file,
