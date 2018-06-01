@@ -2,6 +2,9 @@ package edu.drexel.se577.grouptwo.viz.parsers;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
+import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.dataset.Attribute.FloatingPoint;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 import edu.drexel.se577.grouptwo.viz.filetypes.CSVFileContents;
@@ -12,7 +15,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
+import java.text.NumberFormat;
+
 import com.opencsv.CSVReader;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * CSVInputHandler This class is responsible for parsing a bytearray of excel
@@ -25,76 +34,165 @@ import com.opencsv.CSVReader;
 
 public class CSVInputHandler implements FileInputHandler {
 
-    static String EXT_CSV = "application/csv";  
+    static String EXT_CSV = "application/csv";
 
-    CSVReader csvReader;
-    Attribute.Int attributeInt;
-    Attribute.FloatingPoint attributeFloatingPoint;
-    Attribute.Arbitrary attributeArbitary;
-    Attribute.Enumerated attributeEnumerated;
-    Definition definition;
-    String key;
-    String value;
-    
-	@Override
-	public boolean CanParse(String ext) {
-		return ext.equalsIgnoreCase(EXT_CSV);
-    }
-    
     @Override
-	public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {
+    public boolean CanParse(String ext) {
+        return ext.equalsIgnoreCase(EXT_CSV);
+    }
 
-        attributeArbitary = new Attribute.Arbitrary("?");
+    @Override
+    public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {
+
+        // first non-empty column is the Key. Strings with '#', a.k.a comment.
+        // column 2 with no values afterwards :
+        // - parse as float (assume all numbers are floats) if 0
+        // - assume arbitrary value store as string
+        // column 2..n : enumeration
+
+        CSVReader csvReader;
         csvReader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(inputBuffer)));
-        definition = new Definition(name);
         String[] nextLine;
-        int numColumns = Integer.MAX_VALUE; // just a placeholder for comparison
-        Map<String, String> map = new HashMap<>();
+        CSVFileContents contents = new CSVFileContents(name);
 
         try {
-            while((nextLine = csvReader.readNext())!=null){
-                if(numColumns == Integer.MAX_VALUE){
-                    numColumns = nextLine.length; // set the real value for the number of columns
-                }
-                if(numColumns != nextLine.length){ //for some csv, the number of columns may decrease/change before, during operation, we want to stop reading once we discover uneven number of columns
+            String sKey = "";
+            List<Value> values = new ArrayList<>();
+            int maxInts = 0, minInts = 0;
+            float maxFloats = 0,minFloats = 0;
+            List<Integer> integers = new ArrayList<>();
+            List<Float> floats = new ArrayList<>();
+            Set<String> enumerated = new HashSet<String>();
+
+            while ((nextLine = csvReader.readNext()) != null) {
+                int numColumns = nextLine.length;
+                int i = 0;
+
+                // Use first column thats not empty or
+                // marked as a comment (#), as the rows key.
+                for (i = 0; i < numColumns; i++) {
+                    String value = nextLine[i];
+                    if (value == null || value.isEmpty() || value.contains("#")) {
+                        continue;
+                    }
+
+                    sKey = value;
                     break;
                 }
-                else{
-                    key = nextLine[0];            //get the key
-                    StringBuilder sb = new StringBuilder(); //this is used to keep track of all the values associated with a key
-                    for (int i = 1; i < numColumns; i++){
+
+                if (sKey.isEmpty())
+                    continue;
+
+                StringBuilder sb = new StringBuilder();
+                for (; i < numColumns; i++) {
+                    String value = nextLine[i];
+                    if (value == null || value.trim().isEmpty() || value.contains("#")) {
+                        continue;
+                    }
+
+                    value = value.trim();
+
+                    if (value.contains(",")) {
+                        // dealing with a value thats a list.
+                        // replace , with | so enum can be split later./**
+                        value = value.replace(",", "|");
+                    }
+
+                    // add values, ignore key.
+                    if (!value.equalsIgnoreCase(sKey)) {
                         sb.append(nextLine[i]);
-                        if(i != (numColumns-1)){
+
+                        // avoid last unnessesary comma
+                        if (i != (numColumns - 1)) {
                             sb.append(",");
                         }
                     }
-                    value = sb.toString();
-                    map.put(key, value);
-                    System.out.println(key+" :"+value);
                 }
 
+                if (sb.length() > 0) {
+                    String[] tokens = sb.toString().split(","); // should be no empty tokens
+                    for (int t = 0; t < tokens.length; t++) {
+                        String token = tokens[t];
+
+                        // isNumeric fails on 25.5...?
+                        String tempStr = token.replace(".", "");
+                        if (StringUtils.isNumeric(tempStr)) {
+                            try {
+                                // falls though when value has a mantissa.
+                                int val = Integer.parseInt(token);
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Int fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Int(
+                                        val);
+                                values.add(fp);
+                                integers.add(val);
+                                continue;
+                            } catch (NumberFormatException ex) {
+                                // Not an integer... thats fine.
+                            }
+
+                            try {
+                                // Apprently were dealing with a decimal
+                                float val = Float.parseFloat(token);
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint(
+                                        val);
+                                values.add(fp);
+                                floats.add(val);
+                                continue;
+                            } catch (NumberFormatException ex) {
+                                // Not a float? really?. add as arbitrary
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                                        token);
+                                values.add(ap);
+                            }
+                        } else {
+                            // Check to see if the value was a comma delimited list./**
+                            // commas were replaced with pipes above.
+                            if (token.contains("|")) {
+                                String[] enums = token.toString().split("|");
+
+                                for (int enm = 0; enm < enums.length; enm++) {
+                                    edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
+                                            enums[enm]);
+                                    values.add(fp);
+                                    enumerated.add(enums[enm]);
+                                }
+                            } else {
+                                // Alright, all thats left is that the value is an arbitrary string.
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                                        token);
+                                values.add(ap);
+                            }
+                        }
+                    }
+                }
             }
+
+            // Determine min/max integers and floats, then add attributes.
+            maxInts = Collections.max(integers);
+            minInts = Collections.min(integers);
+            maxFloats = Collections.max(floats);            
+            minFloats = Collections.min(floats); 
+
+            contents.getDefinition().put(new Attribute.Int("integer", maxInts, minInts));
+            contents.getDefinition().put(new Attribute.FloatingPoint("floating", maxFloats, minFloats));
+
+            // Add arbitrary type
+            contents.getDefinition().put(new Attribute.Arbitrary("comment"));
+
+            // Add enumerated type, given found enumerations
+            contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
+
+            int count = 1;
+            Sample s = new Sample();
+            contents.getSamples().add(s);
+            for (Value v : values) {
+                s.put(sKey + Integer.toString(count), v);
+                contents.getSamples().add(s);
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
-
-
         }
 
-        List<Integer> keys = new LinkedList<>(); // A List object that will be used to discover the max and min int
-        for (String key: map.keySet()
-             ) {
-            keys.add(Integer.parseInt(key));
-        }
-
-
-        int max = Collections.max(keys);
-        int min = Collections.min(keys);
-        attributeInt = new Attribute.Int("?", max, min);
-        attributeFloatingPoint = new Attribute.FloatingPoint("?", max, min);
-        definition.put(attributeInt);
-        definition.put(attributeFloatingPoint);
-
-
-        return Optional.of(new CSVFileContents(name));
+        return Optional.of(contents);
     }
 }

@@ -4,6 +4,13 @@ const upload_dataset_component = new Vue({
       datasets: []
     },
     methods: {
+    fetchDatasets(){
+      fetch("http://localhost:4567/api/datasets")
+      .then(response => response.json())
+      .then((data) => {
+        this.datasets = data;
+      })
+    },
     attemptUpload() {        
         var input = document.querySelector('input[type="file"]')
         var dataSetName = document.getElementById("name").value; 
@@ -54,7 +61,10 @@ const upload_dataset_component = new Vue({
             },
           })
           .then(handleErrors).then(
-            success => log(success) // Handle the success response object
+            (success) => {
+              log(success);
+              this.fetchDatasets();  
+            }
           ).catch(
             error => log(error) // Handle the error response object
           );
@@ -76,11 +86,7 @@ const upload_dataset_component = new Vue({
 
     // },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
-        .then(response => response.json())
-        .then((data) => {
-          this.datasets = data;
-        })
+      this.FetchDatasets();
     },
     template: ` 
       <div>
