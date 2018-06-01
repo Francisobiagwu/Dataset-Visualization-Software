@@ -1,5 +1,16 @@
 package edu.drexel.se577.grouptwo.viz.parsers;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -9,12 +20,6 @@ import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 import edu.drexel.se577.grouptwo.viz.filetypes.XLSFileContents;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
 
 /**
  * XLSInputHandler This class is responsible for parsing a bytearray of excel

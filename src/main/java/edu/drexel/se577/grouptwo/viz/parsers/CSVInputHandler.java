@@ -1,27 +1,25 @@
 package edu.drexel.se577.grouptwo.viz.parsers;
 
-import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
-import edu.drexel.se577.grouptwo.viz.dataset.Definition;
-import edu.drexel.se577.grouptwo.viz.dataset.Sample;
-import edu.drexel.se577.grouptwo.viz.dataset.Value;
-import edu.drexel.se577.grouptwo.viz.dataset.Attribute.FloatingPoint;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
-import edu.drexel.se577.grouptwo.viz.filetypes.CSVFileContents;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
-import java.text.NumberFormat;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import com.opencsv.CSVReader;
 
 import org.apache.commons.lang3.StringUtils;
+
+import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
+import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.filetypes.CSVFileContents;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 
 /**
  * CSVInputHandler This class is responsible for parsing a bytearray of excel
