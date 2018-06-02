@@ -3,6 +3,7 @@ package edu.drexel.se577.grouptwo.viz;
 import java.util.Optional;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 
@@ -43,6 +45,29 @@ class DemoRouting extends Routing {
         
         return Optional.of(new DemoFileInputHandler());
     }
+
+    @Override
+    Collection<? extends Visualization> listVisualizations() {
+        Visualization viz = new Visualization() {
+            @Override
+            public String getId() {
+                return "any-old-id";
+            }
+            @Override
+            public String getName() {
+                return "Demo Visualization";
+            }
+            @Override
+            public void accept(Visualization.Visitor visitor) {
+            }
+            @Override
+            public Visualization.Image render() {
+                // TODO: implement this with a static photo.
+                return null;
+            }
+        };
+        return Stream.of(viz).collect(Collectors.toList());
+    };
 
     private final class DemoFileInputHandler implements FileInputHandler {
         private final Dataset model = new DemoDataset();

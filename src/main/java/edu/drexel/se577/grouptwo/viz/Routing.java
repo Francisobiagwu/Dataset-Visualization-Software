@@ -29,6 +29,7 @@ import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 import java.util.Optional;
 
 public abstract class Routing {
@@ -38,6 +39,7 @@ public abstract class Routing {
     private static final String ARBITRARY = "arbitrary";
 
     private static final URI DATASETS_PATH = URI.create("/api/datasets/");
+    private static final URI VISUALIZATION_PATH = URI.create("/api/visualizations/");
     private static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(Definition.class, new DefinitionGsonAdapter())
         .registerTypeAdapter(Attribute.class, new AttributeGsonAdapter())
@@ -50,17 +52,18 @@ public abstract class Routing {
     abstract URI storeDataset(Definition def);
     abstract Dataset createDataset(Definition def);
     abstract Optional<? extends FileInputHandler> getFileHandler(String contentType);
+    abstract Collection<? extends Visualization> listVisualizations();
 
     final String allDatasets() {
         Collection<? extends Dataset> datasets = listDatasets();
-        DatasetRef[] refs = datasets.stream()
+        Ref[] refs = datasets.stream()
             .map(dataset -> {
-                DatasetRef ref = new DatasetRef();
+                Ref ref = new Ref();
                 URI id = URI.create(dataset.getId());
                 ref.name = dataset.getName();
                 ref.location = DATASETS_PATH.resolve(id);
                 return ref;
-            }).toArray(DatasetRef[]::new);
+            }).toArray(Ref[]::new);
         return gson.toJson(refs);
     }
 
@@ -84,6 +87,18 @@ public abstract class Routing {
                 dataset.addSample(sample);
                 return serializeDataset(dataset);
             }).orElse(null);
+    }
+
+    final String allVisualizations() {
+        Ref[] refs = listVisualizations().stream()
+            .map(vis -> {
+                Ref ref = new Ref();
+                URI id = URI.create(vis.getId());
+                ref.name = vis.getName();
+                ref.location = VISUALIZATION_PATH.resolve(id);
+                return ref;
+            }).toArray(Ref[]::new);
+        return gson.toJson(refs);
     }
 
     final URI instanciateDefinition(String body) {
@@ -393,7 +408,7 @@ public abstract class Routing {
         }
     }
 
-    static class DatasetRef {
+    static class Ref {
         String name;
         URI location;
     }
@@ -442,11 +457,15 @@ public abstract class Routing {
         return getInstance().appendSample(id, request.body());
     };
 
+    private static Route getVisualizations = (request, reply) -> {
+        return getInstance().allVisualizations();
+    };
+
 
     private static Routing instance = null;
 
     static Routing getInstance() {
-        instance = Optional.ofNullable(instance).orElse(new DemoRouting());
+        instance = Optional.ofNullable(instance).orElseGet(DemoRouting::new);
         return instance;
     }
 
@@ -458,6 +477,9 @@ public abstract class Routing {
                 Spark.post("", Routing.postDefinition);
                 Spark.get("/:id", Routing.getDataset);
                 Spark.post("/:id", Routing.postSample);
+            });
+            Spark.path("/visualizations",() -> {
+                Spark.get("", Routing.getVisualizations);
             });
         });
         Spark.init();

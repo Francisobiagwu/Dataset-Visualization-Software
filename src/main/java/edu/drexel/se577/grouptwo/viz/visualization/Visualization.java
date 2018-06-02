@@ -25,6 +25,9 @@ import edu.drexel.se577.grouptwo.viz.dataset.Value;
  */
 public interface Visualization {
 
+    String getName();
+    String getId();
+
     void accept(Visitor visitor);
 
     Image render(); // Should we add image type?
