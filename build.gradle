@@ -1,0 +1,17 @@
+apply plugin: "java"
+apply plugin: "application"
+
+mainClassName = "edu.drexel.se577.grouptwo.viz.Routing"
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-Xlint:deprecation"]
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.sparkjava:spark-core:2.7.2'
+    compile 'com.google.code.gson:gson:2.8.4'
+}
