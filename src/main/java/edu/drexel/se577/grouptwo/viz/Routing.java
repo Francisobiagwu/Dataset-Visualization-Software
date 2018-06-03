@@ -49,6 +49,7 @@ public abstract class Routing {
     private static final String STYLE_SCATTERPLOT = "scatterplot";
 
     private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(Visualization.class,new VisualizationGsonAdapter())
         .registerTypeAdapter(Definition.class, new DefinitionGsonAdapter())
         .registerTypeAdapter(Attribute.class, new AttributeGsonAdapter())
         .registerTypeAdapter(Sample.class, new SampleGsonAdapter())
@@ -539,7 +540,7 @@ public abstract class Routing {
             });
             Spark.path("/visualizations",() -> {
                 Spark.get("", Routing.getVisualizations);
-                Spark.put("", Routing.postVisualization);
+                Spark.post("", Routing.postVisualization);
             });
         });
         Spark.init();
