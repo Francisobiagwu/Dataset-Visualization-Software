@@ -58,6 +58,7 @@ public abstract class Routing {
 
     abstract Collection<? extends Dataset> listDatasets();
     abstract Optional<? extends Dataset> getDataset(String id);
+    abstract Optional<? extends Visualization> getVisualization(String id);
     abstract URI storeVisualization(Visualization def);
     abstract URI storeDataset(Definition def);
     abstract Dataset createDataset(Definition def);
@@ -97,6 +98,11 @@ public abstract class Routing {
                 dataset.addSample(sample);
                 return serializeDataset(dataset);
             }).orElse(null);
+    }
+
+    final Visualization selectVisualization(String id) {
+        return getVisualization(id)
+            .orElseThrow(() -> new RuntimeException("No such Visualization"));
     }
 
     final String allVisualizations() {
@@ -143,7 +149,90 @@ public abstract class Routing {
         List<Sample> samples; // This is probably serialize only
     }
 
-    private static final class VisualizationGsonAdapter implements JsonDeserializer<Visualization> {
+    private static final class VisualizationGsonAdapter implements JsonDeserializer<Visualization>, JsonSerializer<Visualization> {
+        private static class ElementCreator implements Visualization.Visitor {
+            Optional<JsonObject> object = Optional.empty();
+            private final JsonSerializationContext context;
+            ElementCreator(JsonSerializationContext context) {
+                this.context = context;
+            }
+
+            @Override
+            public void visit(Visualization.Histogram hist) {
+                JsonObject obj = new JsonObject();
+                final JsonArray attributes = new JsonArray();
+                final JsonArray data = new JsonArray();
+                hist.data().stream()
+                    .forEach(point -> {
+                        JsonObject pt = new JsonObject();
+                        pt.add("bin", context.serialize(point.bin, Value.class));
+                        pt.addProperty("count", Long.valueOf(point.count));
+                        data.add(pt);
+                    });
+                obj.add("attributes", attributes);
+                obj.add("data", data);
+                obj.addProperty("name", hist.getName());
+                obj.addProperty("style", STYLE_HISTOGRAM);
+                obj.addProperty("dataset", VISUALIZATION_PATH.resolve(
+                            URI.create(hist.getId())).toString());
+                attributes.add(context.serialize(hist.attribute,Attribute.class));
+                object = Optional.of(obj);
+            }
+
+            @Override
+            public void visit(Visualization.Scatter scatter) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("name", scatter.getName());
+                obj.addProperty("style", STYLE_SCATTERPLOT);
+                obj.addProperty("dataset", VISUALIZATION_PATH.resolve(
+                            URI.create(scatter.getId())).toString());
+                final JsonArray attributes = new JsonArray();
+                final JsonArray data = new JsonArray();
+                attributes.add(context.serialize(scatter.xAxis, Attribute.class));
+                attributes.add(context.serialize(scatter.yAxis, Attribute.class));
+                obj.add("attributes", attributes);
+                scatter.data().stream()
+                    .forEach(point -> {
+                        JsonObject pt = new JsonObject();
+                        pt.add("x", context.serialize(point.x, Value.class));
+                        pt.add("y", context.serialize(point.y, Value.class));
+                        data.add(pt);
+                    });
+                obj.add("data", data);
+                object = Optional.of(obj);
+            }
+
+            @Override
+            public void visit(Visualization.Series series) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("name", series.getName());
+                obj.addProperty("style", STYLE_SERIES);
+                obj.addProperty("dataset", VISUALIZATION_PATH.resolve(
+                            URI.create(series.getId())).toString());
+                final JsonArray attributes = new JsonArray();
+                final JsonArray data = new JsonArray();
+                attributes.add(context.serialize(series.attribute, Attribute.class));
+                obj.add("attributes",attributes);
+                series.data().stream()
+                    .forEach(point -> {
+                        data.add(context.serialize(point, Value.class));
+                    });
+                obj.add("data", data);
+                object = Optional.of(obj);
+            }
+        }
+        @Override
+        public JsonElement serialize(
+                Visualization elem,
+                java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context)
+        {
+            ElementCreator creator = new ElementCreator(context);
+            elem.accept(creator);
+            return creator.object
+                .orElseThrow(() -> new RuntimeException("Unknown Visualization Type"));
+        }
+
         @Override
         public Visualization deserialize(
                 JsonElement elem,
@@ -153,7 +242,7 @@ public abstract class Routing {
             final JsonObject obj = elem.getAsJsonObject();
             final String name = obj.getAsJsonPrimitive("name").getAsString();
             final String style = obj.getAsJsonPrimitive("style").getAsString();
-            final URI datasetURI = VISUALIZATION_PATH.resolve(URI.create(
+            final URI datasetURI = VISUALIZATION_PATH.relativize(URI.create(
                         obj.getAsJsonPrimitive("dataset").getAsString()));
             Iterator<JsonElement> attrIterator =
                 obj.getAsJsonArray("attributes").iterator();
@@ -521,6 +610,20 @@ public abstract class Routing {
         return getInstance().allVisualizations();
     };
 
+    private static Route getJsonVisualization = (request, reply) -> {
+        String id = request.params(":id");
+        Visualization viz = getInstance().selectVisualization(id);
+        return gson.toJson(viz, Visualization.class);
+    };
+
+    private static Route getOtherVisualization = (request, reply) -> {
+        String id = request.params(":id");
+        Visualization viz = getInstance().selectVisualization(id);
+        Visualization.Image image = viz.render();
+        reply.type(image.mimeType());
+        return image.data();
+    };
+
 
     private static Routing instance = null;
 
@@ -541,6 +644,8 @@ public abstract class Routing {
             Spark.path("/visualizations",() -> {
                 Spark.get("", Routing.getVisualizations);
                 Spark.post("", Routing.postVisualization);
+                Spark.get("/:id","application/json",Routing.getJsonVisualization);
+                Spark.get("/:id",Routing.getOtherVisualization);
             });
         });
         Spark.init();

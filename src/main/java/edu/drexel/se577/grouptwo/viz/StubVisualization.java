@@ -78,11 +78,6 @@ class StubVisualization {
         }
 
         @Override
-        public String getId() {
-            return "";
-        }
-
-        @Override
         public Image render() {
             return null;
         }
@@ -103,11 +98,6 @@ class StubVisualization {
         @Override
         public String getName() {
             return name;
-        }
-
-        @Override
-        public String getId() {
-            return "";
         }
 
         @Override
@@ -135,11 +125,6 @@ class StubVisualization {
         @Override
         public String getName() {
             return name;
-        }
-
-        @Override
-        public String getId() {
-            return "";
         }
 
         @Override

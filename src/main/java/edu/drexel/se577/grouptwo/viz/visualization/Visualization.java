@@ -51,6 +51,11 @@ public interface Visualization {
             visitor.visit(this);
         }
 
+        @Override
+        public final String getId() {
+            return datasetId;
+        }
+
         public abstract List<Value> data();
     }
 
@@ -75,6 +80,11 @@ public interface Visualization {
         @Override
         public final void accept(Visitor visitor) {
             visitor.visit(this);
+        }
+
+        @Override
+        public final String getId() {
+            return datasetId;
         }
 
         public abstract List<DataPoint> data();
@@ -103,6 +113,11 @@ public interface Visualization {
             this.datasetId = datasetId;
             this.xAxis = xAxis;
             this.yAxis = yAxis;
+        }
+
+        @Override
+        public final String getId() {
+            return datasetId;
         }
 
         @Override

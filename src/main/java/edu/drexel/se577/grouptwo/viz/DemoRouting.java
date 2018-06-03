@@ -1,5 +1,6 @@
 package edu.drexel.se577.grouptwo.viz;
 
+import com.google.common.io.Resources;
 import java.util.Optional;
 import java.net.URI;
 import java.util.Collection;
@@ -19,6 +20,103 @@ import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 
 class DemoRouting extends Routing {
+    private static Visualization.Image getDemoImage() {
+        return new Visualization.Image() {
+            @Override
+            public String mimeType() {
+                return "image/jpeg";
+            }
+
+            @Override
+            public byte[] data() {
+                try {
+                    return Resources.toByteArray(
+                            Resources.getResource(
+                                DemoRouting.class,
+                                "/demo/cat-pic.jpg"));
+                } catch (java.io.IOException ex) {
+                    return new byte[0];
+                }
+            }
+        };
+    }
+
+    private static class Histogram extends Visualization.Histogram {
+        Histogram() {
+            super("histogram",
+                    new Attribute.Enumerated("color", "Blue", "Green", "Red"));
+        }
+        @Override
+        public String getName() {
+            return "Bear population of certain colors";
+        }
+
+        @Override
+        public Image render() {
+            return getDemoImage();
+        }
+
+        @Override
+        public List<DataPoint> data() {
+            return Stream.of(
+                    new DataPoint(new Value.Enumerated("Blue"), 7),
+                    new DataPoint(new Value.Enumerated("Green"), 4),
+                    new DataPoint(new Value.Enumerated("Red"), 17))
+                .collect(Collectors.toList());
+        }
+    }
+
+    private static class Series extends Visualization.Series {
+        Series() {
+            super("series",
+                    new Attribute.FloatingPoint("temperature", 30.0, 10.0));
+        }
+        @Override
+        public String getName() {
+            return "Temperature inside a comfortable room";
+        }
+
+        @Override
+        public Image render() {
+            return getDemoImage();
+        }
+
+        @Override
+        public List<Value> data() {
+            return Stream.of(
+                    new Value.FloatingPoint(15.0),
+                    new Value.FloatingPoint(17.0),
+                    new Value.FloatingPoint(11.0))
+                .collect(Collectors.toList());
+        }
+    }
+
+    private static class Scatter extends Visualization.Scatter {
+        Scatter() {
+            super("scatter",
+                    new Attribute.Int("commanded-volume", 0, 11),
+                    new Attribute.Int("real-volume",0,20));
+        }
+        @Override
+        public String getName() {
+            return "Alexa volume after given commands";
+        }
+
+        @Override
+        public Image render() {
+            return getDemoImage();
+        }
+
+        @Override
+        public List<DataPoint> data() {
+            return Stream.of(
+                    new DataPoint( new Value.Int(5), new Value.Int(5)),
+                    new DataPoint( new Value.Int(10), new Value.Int(10)),
+                    new DataPoint( new Value.Int(11), new Value.Int(20)))
+                .collect(Collectors.toList());
+        }
+    }
+
     @Override
     Collection<? extends Dataset> listDatasets() {
         return Stream.of(new DemoDataset())
@@ -52,26 +150,21 @@ class DemoRouting extends Routing {
     }
 
     @Override
+    Optional<? extends Visualization> getVisualization(String id) {
+        switch (id) {
+        case "series":
+            return Optional.of(new Series());
+        case "histogram":
+            return Optional.of(new Histogram());
+        case "scatterplot":
+            return Optional.of(new Scatter());
+        }
+        return Optional.empty();
+    }
+
+    @Override
     Collection<? extends Visualization> listVisualizations() {
-        Visualization viz = new Visualization() {
-            @Override
-            public String getId() {
-                return "any-old-id";
-            }
-            @Override
-            public String getName() {
-                return "Demo Visualization";
-            }
-            @Override
-            public void accept(Visualization.Visitor visitor) {
-            }
-            @Override
-            public Visualization.Image render() {
-                // TODO: implement this with a static photo.
-                return null;
-            }
-        };
-        return Stream.of(viz).collect(Collectors.toList());
+        return Stream.of(new Histogram(), new Scatter(), new Series()).collect(Collectors.toList());
     };
 
     private final class DemoFileInputHandler implements FileInputHandler {
