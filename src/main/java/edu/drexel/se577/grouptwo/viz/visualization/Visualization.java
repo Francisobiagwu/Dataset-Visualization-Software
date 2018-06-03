@@ -4,6 +4,7 @@ import java.util.List;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.visualization.Visualization.Histogram.DataPoint;
 
 /**
  * Interface for the definition and realization of visualizations.
@@ -34,6 +35,9 @@ public interface Visualization {
         byte[] data();
     }
 
+    String getID();
+    String getName();
+    
     public abstract class Series implements Visualization {
         public final String datasetId;
         public final Attribute.Arithmetic attribute;
@@ -54,14 +58,13 @@ public interface Visualization {
     public abstract class Histogram implements Visualization {
         public final String datasetId;
         public final Attribute.Countable attribute;
-
         
         public static final class DataPoint {
-            public final Value.Int bin;
-            public final long count;
-            public DataPoint(Value.Int bin, long count) {
-                this.bin = bin;
-                this.count = count;
+            protected Value.Int value;
+            
+            public void setValues(Value.Int val)
+            {
+            	this.value = val;
             }
         }
        
@@ -75,15 +78,14 @@ public interface Visualization {
             visitor.visit(this);
         }
         
-        public abstract void createDataPoint();
 
         public abstract List<DataPoint> data();
     }
 
     public abstract class Scatter implements Visualization {
         public final String datasetId;
-        public final Attribute.Arithmetic xAxis;
-        public final Attribute.Arithmetic yAxis;
+        public final Attribute xAxis;
+        public final Attribute yAxis;
 
         public static final class DataPoint {
             public final Value x;
@@ -97,8 +99,8 @@ public interface Visualization {
 
         protected Scatter(
                 String datasetId,
-                Attribute.Arithmetic xAxis,
-                Attribute.Arithmetic yAxis)
+                Attribute xAxis,
+                Attribute yAxis)
         {
             this.datasetId = datasetId;
             this.xAxis = xAxis;
@@ -110,8 +112,6 @@ public interface Visualization {
             visitor.visit(this);
         }
 
-        public abstract void createDataPoint();
-        
         public abstract List<DataPoint> data();
     }
 
