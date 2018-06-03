@@ -6,6 +6,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonSerializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonParseException;
@@ -14,6 +15,7 @@ import com.google.gson.JsonIOException;
 import spark.Spark;
 import spark.Route;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -21,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Collection;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.stream.Collectors;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
@@ -40,6 +43,11 @@ public abstract class Routing {
 
     private static final URI DATASETS_PATH = URI.create("/api/datasets/");
     private static final URI VISUALIZATION_PATH = URI.create("/api/visualizations/");
+
+    private static final String STYLE_SERIES = "series";
+    private static final String STYLE_HISTOGRAM = "histogram";
+    private static final String STYLE_SCATTERPLOT = "scatterplot";
+
     private static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(Definition.class, new DefinitionGsonAdapter())
         .registerTypeAdapter(Attribute.class, new AttributeGsonAdapter())
@@ -49,6 +57,7 @@ public abstract class Routing {
 
     abstract Collection<? extends Dataset> listDatasets();
     abstract Optional<? extends Dataset> getDataset(String id);
+    abstract URI storeVisualization(Visualization def);
     abstract URI storeDataset(Definition def);
     abstract Dataset createDataset(Definition def);
     abstract Optional<? extends FileInputHandler> getFileHandler(String contentType);
@@ -101,6 +110,11 @@ public abstract class Routing {
         return gson.toJson(refs);
     }
 
+    final URI instanciateVisualization(String body) {
+        Visualization viz = gson.fromJson(body, Visualization.class);
+        return VISUALIZATION_PATH.resolve(storeVisualization(viz));
+    }
+
     final URI instanciateDefinition(String body) {
         Definition def = gson.fromJson(body, Definition.class);
         return DATASETS_PATH.resolve(storeDataset(def));
@@ -126,6 +140,44 @@ public abstract class Routing {
     static class DatasetRep {
         Definition definition;
         List<Sample> samples; // This is probably serialize only
+    }
+
+    private static final class VisualizationGsonAdapter implements JsonDeserializer<Visualization> {
+        @Override
+        public Visualization deserialize(
+                JsonElement elem,
+                java.lang.reflect.Type typeOfT,
+                final JsonDeserializationContext context)
+        {
+            final JsonObject obj = elem.getAsJsonObject();
+            final String name = obj.getAsJsonPrimitive("name").getAsString();
+            final String style = obj.getAsJsonPrimitive("style").getAsString();
+            final URI datasetURI = VISUALIZATION_PATH.resolve(URI.create(
+                        obj.getAsJsonPrimitive("dataset").getAsString()));
+            Iterator<JsonElement> attrIterator =
+                obj.getAsJsonArray("attributes").iterator();
+            Iterable<JsonElement> attrIterable = () -> attrIterator;
+            Attribute[] attributes = StreamSupport
+                .stream(attrIterable.spliterator(), false)
+                .map(e -> context.deserialize(e, Attribute.class))
+                .toArray(Attribute[]::new);
+            switch (style) {
+            case STYLE_SERIES:
+                return new StubVisualization.Series(
+                        name, datasetURI.toString(),
+                        StubVisualization.asArithmetic(attributes[0]));
+            case STYLE_HISTOGRAM:
+                return new StubVisualization.Histogram(
+                        name, datasetURI.toString(),
+                        StubVisualization.asCountable(attributes[0]));
+            case STYLE_SCATTERPLOT:
+                return new StubVisualization.Scatter(
+                        name, datasetURI.toString(),
+                        StubVisualization.asArithmetic(attributes[0]),
+                        StubVisualization.asArithmetic(attributes[1]));
+            }
+            throw new RuntimeException("Unknown Visualization Type");
+        }
     }
 
     private static final class AttributeGsonAdapter implements JsonSerializer<Attribute>, JsonDeserializer<Attribute> {
@@ -418,6 +470,13 @@ public abstract class Routing {
         return getInstance().allDatasets();
     };
 
+    private static Route postVisualization = (request, reply) -> {
+        URI location = getInstance().instanciateVisualization(request.body());
+        reply.header("Location", location.toString());
+        reply.status(201);
+        return "";
+    };
+
     private static Route postDefinition = (request, reply) -> {
         Optional<String> contentType = Optional
             .ofNullable(request.headers("Content-Type"));
@@ -480,6 +539,7 @@ public abstract class Routing {
             });
             Spark.path("/visualizations",() -> {
                 Spark.get("", Routing.getVisualizations);
+                Spark.put("", Routing.postVisualization);
             });
         });
         Spark.init();

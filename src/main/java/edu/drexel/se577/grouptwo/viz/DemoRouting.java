@@ -36,6 +36,11 @@ class DemoRouting extends Routing {
     }
 
     @Override
+    URI storeVisualization(Visualization def) {
+        return URI.create("any-old-viz");
+    }
+
+    @Override
     Dataset createDataset(Definition def) {
         return new DemoDataset();
     }
