@@ -1,13 +1,19 @@
 package edu.drexel.se577.grouptwo.viz.storage;
 
 import java.util.List;
+
+import edu.drexel.se577.grouptwo.viz.database.repositories.Repository;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 
 public interface Dataset {
-    String getId();
-    String getName();
-    Definition getDefinition();
-    List<Sample> getSamples();
-    void addSample(Sample sample);
+	public void setName(String name);
+	public void setId(String datasetID);
+	public void addRepo(Repository repo);
+    public String getId();
+    public String getName();
+    public Definition getDefinition();
+    public List<Sample> getSamples();
+    public void addSample(Sample sample);
+    
 }
