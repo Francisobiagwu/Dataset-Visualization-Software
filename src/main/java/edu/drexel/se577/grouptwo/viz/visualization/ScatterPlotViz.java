@@ -43,28 +43,30 @@ public class ScatterPlotViz extends Visualization.Scatter{
 		return scatterPlot;
 	}
 
-	public static XYDataset createDataset()
+	public XYDataset createDataset()
 	{
+		List<DataPoint> datapoints = data();
 		XYSeriesCollection dataset = new XYSeriesCollection();
-		XYSeries series1 = new XYSeries("Object1");
-		double[] key = new double[25], value = new double[25];
-		Random generator = new Random();
-		for(int i = 0; i<25; i++)
+		XYSeries series1 = new XYSeries(this.xAxis.toString());
+		double[] key = new double[datapoints.size()], value = new double[datapoints.size()];
+		int i = 0;
+		for(DataPoint dp : datapoints)
 		{
-			key[i] = i;
-			value[i]=generator.nextDouble();
+			key[i] = dp.x.value;
+			value[i]=dp.y.value;
 			series1.add(key[i], value[i]);
+			i++;
 		}
 		dataset.addSeries(series1);
 		return dataset;		
 	}
 	
-	private static File createChartPanel() {
-		String chartTitle = "Object1 XY Scatter Plot";
-		String xAxisLabel = "Key";
-		String yAxisLabel = "Value";
+	private File createChartPanel(String key, String value) {
+		String chartTitle = "XY Scatter Plot";
+		String xAxisLabel = key;
+		String yAxisLabel = value;
 		XYDataset dataset = createDataset();
-		JFreeChart chart = ChartFactory.createXYAreaChart(chartTitle, xAxisLabel, yAxisLabel, dataset);
+		JFreeChart chart = ChartFactory.createXYLineChart(chartTitle, xAxisLabel, yAxisLabel, dataset);
 		int width = 500;
 		int height = 300;
 		File file = null;
@@ -80,7 +82,7 @@ public class ScatterPlotViz extends Visualization.Scatter{
 	@Override
 	public Image render() {
 		// TODO Auto-generated method stub
-		File file = createChartPanel();
+		File file = createChartPanel(xAxis.toString(), yAxis.toString());
 		BufferedImage bufferedImage;
 		ImageImpl image =  null; 
 		try {
