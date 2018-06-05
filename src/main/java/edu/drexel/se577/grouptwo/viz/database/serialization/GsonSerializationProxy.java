@@ -17,8 +17,10 @@ public class GsonSerializationProxy implements MongoSerialization {
 
     public GsonSerializationProxy(){
     	GsonBuilder builder = new GsonBuilder();
+    	builder.registerTypeHierarchyAdapter(Dataset.class, new DatasetAdapter());
         builder.registerTypeAdapter(Dataset.class, new InheritanceAdapter<Dataset>());
         builder.serializeNulls();
+
         _gsonExt = builder.create();  
 
 

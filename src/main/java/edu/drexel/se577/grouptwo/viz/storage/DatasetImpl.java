@@ -3,6 +3,7 @@ package edu.drexel.se577.grouptwo.viz.storage;
 import java.util.ArrayList;
 import java.util.List;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
@@ -67,6 +68,14 @@ public class DatasetImpl implements Dataset {
 	public List<Sample> getSamples()
 	{	
 		return samples;
+	}
+	
+	@Override
+	public void setSample(String key, Value value)
+	{
+		Sample sample = new Sample();
+		sample.put(key,  value);
+		samples.add(sample);
 	}
 
 }
