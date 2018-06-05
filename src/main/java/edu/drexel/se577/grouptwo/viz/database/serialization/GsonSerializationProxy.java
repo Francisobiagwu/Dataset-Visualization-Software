@@ -1,7 +1,5 @@
 package edu.drexel.se577.grouptwo.viz.database.serialization;
 
-import java.lang.reflect.Type;
-
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
@@ -9,17 +7,8 @@ import edu.drexel.se577.grouptwo.viz.storage.DatasetImpl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
-import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
-import com.google.gson.reflect.TypeToken;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.database.serialization.MongoSerialization;
-
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
-import com.mongodb.BasicDBObject ;
 
 import org.bson.Document;
 
@@ -28,10 +17,8 @@ public class GsonSerializationProxy implements MongoSerialization {
 
     public GsonSerializationProxy(){
     	GsonBuilder builder = new GsonBuilder();
-        /*builder.registerTypeAdapter(Visualization.class, new InheritanceAdapter<Visualization>()); */
         builder.registerTypeAdapter(Dataset.class, new InheritanceAdapter<Dataset>());
-        /*builder.registerTypeAdapter(new DatasetAdapter());
-        /*builder.registerTypeAdapter(Definition.class, new InheritanceAdapter<Definition>()); */
+        builder.serializeNulls();
         _gsonExt = builder.create();  
 
 
@@ -45,7 +32,7 @@ public class GsonSerializationProxy implements MongoSerialization {
     public Document getDocument(Dataset data)
     {
         if(data == null) return null;
-        String innerjson = _gsonExt.toJson(data.getSamples());
+        /*String innerjson = _gsonExt.toJson(data.getSamples());*/
         String json = _gsonExt.toJson(data);
         return Document.parse(json);
     }

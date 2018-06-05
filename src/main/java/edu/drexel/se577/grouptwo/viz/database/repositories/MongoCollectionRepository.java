@@ -1,7 +1,6 @@
 
 package edu.drexel.se577.grouptwo.viz.database.repositories;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,14 +16,10 @@ import edu.drexel.se577.grouptwo.viz.database.serialization.MongoSerialization;
 import edu.drexel.se577.grouptwo.viz.database.repositories.Repository;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.DeleteResult;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -34,12 +29,18 @@ public class MongoCollectionRepository implements Repository {
     protected MongoDatabase _database;
     protected Logging _Logger;
     protected MongoSerialization _gSonProxy;
+    private MongoCollection<Document> _dsCollection;
+    private MongoCollection<Document> _vizCollection;
+    private String datasetCollName = "DatasetCollection";
+    private String vizCollName = "VisualizationCollection";
 
     public MongoCollectionRepository(MongoClient mongoClient, 
     		MongoDatabase mongoDatabase) 
     {
     	/*Create new mongoClient*/
-    	this(mongoClient, new GsonSerializationProxy(),mongoDatabase);      
+    	this(mongoClient, new GsonSerializationProxy(),mongoDatabase);     
+       	_dsCollection = _database.getCollection(datasetCollName);
+    	_vizCollection = _database.getCollection(vizCollName);
     }
     
     public MongoCollectionRepository(MongoClient client, 
@@ -63,11 +64,10 @@ public class MongoCollectionRepository implements Repository {
     @Override
     public Dataset create(Definition definition) {
     	Dataset dataset = null;
-    	MongoCollection<Document> _collection = _database.getCollection("DatasetCollection");
     	
         try{
             Document doc = _gSonProxy.getDocument(definition);
-            _collection.insertOne(doc);       
+            _dsCollection.insertOne(doc);       
             dataset = new DatasetImpl();
             dataset.setName(definition.name);
             
@@ -85,11 +85,10 @@ public class MongoCollectionRepository implements Repository {
 
     @Override
     public Visualization createViz(Visualization visualization) {
-    	MongoCollection<Document> _collection = _database.getCollection("VizCollection");
     	
         try{
             Document doc = _gSonProxy.getDocument(visualization);
-            _collection.insertOne(doc);
+            _vizCollection.insertOne(doc);
 
         }catch(Exception e){
             if(_Logger != null){
@@ -103,19 +102,17 @@ public class MongoCollectionRepository implements Repository {
     @Override
     public void addSample(Dataset dataset) {
         // Query Object
-    	MongoCollection<Document> _collection = _database.getCollection("DatasetCollection");   	
-        BasicDBObject query = new BasicDBObject();
+    	BasicDBObject query = new BasicDBObject();
         query.put("name", dataset.getName());
 
         update(dataset, query);
     }
     
     private void update(Dataset dataset, BasicDBObject query) {
-    	MongoCollection<Document> _collection = _database.getCollection("DatasetCollection");  
-    	
+
         try {
             Document doc = _gSonProxy.getDocument(dataset);
-            _collection.findOneAndReplace(query, doc); 
+            _dsCollection.findOneAndReplace(query, doc); 
             
         } catch (Exception e) {
             if(_Logger != null){
@@ -131,10 +128,9 @@ public class MongoCollectionRepository implements Repository {
        	Dataset _dataset = null;
        	
         try {  
-           	MongoCollection<Document> _collection = _database.getCollection("DatasetCollection"); 
            	BasicDBObject query = new BasicDBObject();
            	query.put("name", definition.name);
-           	Document doc = _collection.find(query).first(); 
+           	Document doc = _dsCollection.find(query).first(); 
         
            	if (doc != null)
            	{
@@ -156,10 +152,10 @@ public class MongoCollectionRepository implements Repository {
     	Dataset _dataset = null;
     		
     	try {  		
-        		MongoCollection<Document> _collection = _database.getCollection("DatasetCollection"); 	
+        		
         		BasicDBObject query = new BasicDBObject();
         		query.put("name", new ObjectId(name));
-        		Document doc = _collection.find(query).first(); 
+        		Document doc = _dsCollection.find(query).first(); 
         
         	if (doc != null)
         	{
@@ -178,14 +174,13 @@ public class MongoCollectionRepository implements Repository {
     @Override
 	public List<Sample> getSamples(String name) {
     	
-    		MongoCollection<Document> _collection = _database.getCollection("DatasetCollection"); 
     		List<Sample> myList = new ArrayList<Sample>();
     		BasicDBObject query = new BasicDBObject();
     		query.put("name", name);
     		
     		try {
-    			/*FindIterable<Document> docs = _collection.find(query); */
-	        	Document doc = _collection.find(query).first();         
+    		
+	        	Document doc = _dsCollection.find(query).first();         
 	        	Dataset _dataset =  _gSonProxy.toDataset(doc);
 	        	myList = _dataset.getSamples();
 
@@ -202,18 +197,21 @@ public class MongoCollectionRepository implements Repository {
     @Override
     public List<String> getDatasetNames()
     {
-    	 MongoCollection<Document> _collection = _database.getCollection("DatasetCollection"); 
-    	 List<String> myList = new ArrayList<String>();
-    	 BasicDBObject query = new BasicDBObject();	
-    	 query.put("name", 1);
-    	 
-    	 try {
-    		         
-    		 FindIterable<Document> docs  = _collection.find(query);
+   	 List<String> myList = new ArrayList<String>();
+   	 BasicDBObject query = new BasicDBObject();
+ 
+   	 try {
+   		       
+   		 /*Make this better - _collection.distinct requiring field and class)*/
+   		 FindIterable<Document> docs  = _dsCollection.find(query);
 
-    		 for (Document doc : docs) { 
-    			    myList.add(_gSonProxy.getDatasetName(doc));;
-    			}
+   		 for (Document doc : docs) { 
+   			 	String name = _gSonProxy.getDatasetName(doc);
+   			 	if (!myList.contains(name))
+   			 	{
+   			 		myList.add(name);
+   			 	}
+   			}
 
         } catch (Exception e) {
             if(_Logger != null){
@@ -227,17 +225,21 @@ public class MongoCollectionRepository implements Repository {
 	@Override
     public List<String> getVisualizationNames()
     {
-    	MongoCollection<Document> _collection = _database.getCollection("VizCollection"); 
+    	
     	List<String> myList = new ArrayList<String>();
     	BasicDBObject query = new BasicDBObject();
     	
+    	/*make this better*/
         try {
-	    FindIterable<Document> docs = _collection.find(query);
+        	FindIterable<Document> docs = _vizCollection.find(query);
 
 
-            for (Document doc : docs) {                
-            	String name = _gSonProxy.getVizName(doc);
-                myList.add(name);
+            for (Document doc : docs) { 
+   			 	String name = _gSonProxy.getVizName(doc);
+			 	if (!myList.contains(name))
+			 	{
+			 		myList.add(name);
+			 	}
             }
         } catch (Exception e) {
             if(_Logger != null){
