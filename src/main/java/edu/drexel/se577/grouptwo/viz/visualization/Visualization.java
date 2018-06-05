@@ -114,40 +114,11 @@ public interface Visualization {
         public abstract List<DataPoint> data();
     }
 
-    public abstract class Box implements Visualization {
-        public final String datasetId;
-        public final Attribute.Countable seriesAttribute;
-        public final Attribute.Arbitrary xAttribute;
-        
-        public static final class DataPoint {
-            protected Value.Mapping pair;
-            
-            public void setValues(Value.Mapping val)
-            {
-            	this.pair = val;
-            }
-        }
-       
-        protected Box(String datasetId, Attribute.Countable attribute, Attribute.Arbitrary xAttribute) {
-            this.datasetId = datasetId;
-            this.seriesAttribute = attribute;
-            this.xAttribute = xAttribute;
-        }
-
-        @Override
-        public final void accept(Visitor visitor) {
-            visitor.visit(this);
-        }
-        
-
-        public abstract List<DataPoint> data();
-    }
 
     public interface Visitor {
         void visit(Series viz);
         void visit(Histogram viz);
         void visit(Scatter viz);
-        void visit (Box viz);
     }
 
 }
