@@ -154,4 +154,33 @@ public interface Attribute {
         void visit(Enumerated attribute);
         void visit(FloatingPoint attribute);
     }
+
+    public abstract class DefaultVisitor implements Visitor {
+        protected abstract void defaulted();
+
+        @Override
+        public void visit(Arbitrary attribute) {
+            defaulted();
+        }
+
+        @Override
+        public void visit(Mapping attribute) {
+            defaulted();
+        }
+
+        @Override
+        public void visit(Int attribute) {
+            defaulted();
+        }
+
+        @Override
+        public void visit(Enumerated attribute) {
+            defaulted();
+        }
+
+        @Override
+        public void visit(FloatingPoint attribute) {
+            defaulted();
+        }
+    }
 }

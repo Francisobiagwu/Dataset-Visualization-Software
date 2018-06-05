@@ -8,9 +8,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.IntStream;
+import java.util.Map;
+import java.util.Collections;
+import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
@@ -41,6 +45,43 @@ public class HistogramViz extends Visualization.Histogram {
 			hisViz = new HistogramViz(datasetId, attribute);
 		return hisViz;
 	}
+
+    private static final class Counter extends Value.DefaultVisitor {
+        private final Map<Value.Countable, Integer> bins =
+            new TreeMap<>();
+        private static final Value.Arbitrary UNCOUNTABLE =
+            new Value.Arbitrary("<uncountable>");
+        @Override
+        protected void defaulted() {
+            incrementBin(UNCOUNTABLE);
+        }
+        @Override
+        public void visit(Value.Arbitrary value) {
+            incrementBin(value);
+        }
+        @Override
+        public void visit(Value.Int value) {
+            incrementBin(value);
+        }
+
+        @Override
+        public void visit(Value.Enumerated value) {
+            incrementBin(value);
+        }
+
+        private void incrementBin(Value.Countable bin) {
+            int value = Optional.ofNullable(bins.get(bin)).orElse(0);
+            bins.put(bin, value+1);
+        }
+
+        List<DataPoint> data() {
+            final List<DataPoint> points = new ArrayList<>();
+            bins.entrySet().iterator().forEachRemaining(entry -> {
+                points.add(new DataPoint(entry.getKey(), entry.getValue()));
+            });
+            return Collections.unmodifiableList(points);
+        }
+    }
 	
 	@Override
 	public Image render() {
@@ -100,6 +141,16 @@ public class HistogramViz extends Visualization.Histogram {
 	public List<DataPoint> data() {
         // TODO: implement extractors for the ints and string types.
 		EngineSingleton engine = EngineSingleton.getInstance();
+        final Counter counter = new Counter();
+        Dataset dataset =  engine.forId(datasetId)
+            .orElseThrow(() -> new RuntimeException("Missing Dataset"));
+        dataset.getSamples().forEach(sample -> {
+            Value value = sample.get(attribute.name())
+                .orElseThrow(() -> new RuntimeException("Missing Value"));
+            value.accept(counter);
+        });
+        return counter.data();
+        /*
 		Optional<Dataset> datasetOp = engine.forId(datasetId);
 		Dataset dataset = datasetOp.get();
 		List<Sample> list = dataset.getSamples();
@@ -112,6 +163,7 @@ public class HistogramViz extends Visualization.Histogram {
 			dataPoints.add(new DataPoint(val.get(), 1));
 		}		
 		return dataPoints;
+        */
 	}
 
 	@Override
