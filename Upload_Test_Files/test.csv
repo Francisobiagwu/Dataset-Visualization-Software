@@ -1,0 +1,4 @@
+temperature,25.5,25,
+capacity,100,,50
+color,"[Green,red,blue]",,red
+comment,a comment,,an other comment
