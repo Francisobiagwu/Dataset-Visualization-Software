@@ -632,13 +632,6 @@ public abstract class Routing {
         return instance;
     }
 
-    private static Routing instance = null;
-
-    static Routing getInstance() {
-        instance = Optional.ofNullable(instance).orElse(new DemoRouting());
-        return instance;
-    }
-
     public static void main(String[] args) {
         Spark.staticFileLocation("/public");
         Spark.path("/api", () -> {
