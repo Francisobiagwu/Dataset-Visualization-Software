@@ -17,5 +17,6 @@ public interface Dataset {
     public List<Sample> getSamples();
     public void addSample(Sample sample);
     public void setSample(String key, Value value);
+    public void setDefinition(Definition definition);
     
 }

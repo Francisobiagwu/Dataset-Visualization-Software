@@ -78,4 +78,10 @@ public class DatasetImpl implements Dataset {
 		samples.add(sample);
 	}
 
+	@Override
+	public void setDefinition(Definition definition) {
+		this.definition = definition;
+		
+	}
+
 }

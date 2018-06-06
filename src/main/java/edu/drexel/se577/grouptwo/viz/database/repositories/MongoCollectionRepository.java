@@ -66,12 +66,38 @@ public class MongoCollectionRepository implements Repository {
     	Dataset dataset = null;
     	
         try{
-            Document doc = _gSonProxy.getDocument(definition);
-            _dsCollection.insertOne(doc);       
-            dataset = new DatasetImpl();
-            dataset.setName(definition.name);
+        	
+        	if (nonDupDataset(definition))
+        	{      	
+        		Document doc = _gSonProxy.getDocument(definition);
+        		_dsCollection.insertOne(doc);       
+        		dataset = new DatasetImpl();
+        		return dataset;
+        	}
             
-            return dataset;
+        }catch(Exception e){
+            if(_Logger != null){
+                _Logger.LogCritical("MongoCollectionRepository:create error for document " + ". Exception: " + e);
+            }
+        
+        }
+        
+        return dataset;
+
+    }
+    
+    private boolean nonDupDataset(Definition definition)
+    {
+        try{
+        	
+            	BasicDBObject query = new BasicDBObject();
+            	query.put("name", definition.name);
+            	Document doc = _dsCollection.find(query).first(); 
+            
+            	if (doc != null)
+            	{
+            		return false; /*document exists*/
+            	}
             
         }catch(Exception e){
             if(_Logger != null){
@@ -79,8 +105,7 @@ public class MongoCollectionRepository implements Repository {
             }
         }
         
-        return dataset;
-
+        return true;
     }
 
     @Override
@@ -97,7 +122,7 @@ public class MongoCollectionRepository implements Repository {
         }
         
         return visualization;
-    } 
+    }    
     
     @Override
     public void addSample(Dataset dataset) {

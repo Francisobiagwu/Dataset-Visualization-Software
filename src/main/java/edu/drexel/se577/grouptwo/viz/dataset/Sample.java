@@ -3,6 +3,8 @@ package edu.drexel.se577.grouptwo.viz.dataset;
 import java.util.Collection;
 import java.util.Optional;
 
+import edu.drexel.se577.grouptwo.viz.dataset.Value.Mapping;
+
 public class Sample {
     private final Value.Mapping mapping = new Value.Mapping();
 
@@ -17,4 +19,5 @@ public class Sample {
     public Collection<String> getKeys() {
         return mapping.getKeys();
     }
+
 }
