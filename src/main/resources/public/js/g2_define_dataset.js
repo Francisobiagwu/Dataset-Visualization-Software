@@ -21,8 +21,47 @@ const define_dataset_component = new Vue({
       var aLower = null;
       var aUpper = null;
       var aType = this.selAttrib;
+      var aDatasetName = document.getElementById("datasetName").value;
       var aName = document.getElementById("attribName").value;
-      
+            
+      if(!aDatasetName){
+        this.log("Please provide a dataset name for the sample attribute.");
+        return null;
+      }
+
+      var bailBadDatasetName = false;
+      if(this.datasets){
+        this.datasets.forEach(function(t) {
+          if(t.name === aDatasetName){
+            bailBadDatasetName = true;
+          }
+        }); 
+      }
+
+      if(bailBadDatasetName){        
+        this.log("Please provide a dataset name for the sample attribute.");
+        return;
+      }
+
+      if(!this.selectedDataset){
+        // create dataset;
+        this.selectedDataset = {
+           "definition" :  { "name" : aDatasetName, "attributes" : [] },
+           "samples" : []
+        }
+
+        // function Dataset () {
+        //   this.definition = ;
+        //   this.samples = []; 
+        // }
+
+        // Dataset.prototype.addSample = function(attrib, type, value) {          
+        //   //this.samples.push(inputObj);
+        //   //this.samples.push({attrib : {type, value}});
+        //   this.samples.push({attrib : {type, value}});
+        // };
+      }
+
       if(!aName){
         this.log("Please provide a name for the sample attribute.");
         return null;
@@ -126,15 +165,13 @@ const define_dataset_component = new Vue({
       if(this.newAttributes && this.selectedDataset){
         for (var i in this.newAttributes) {
           this.selectedDataset.definition.attributes.push(this.newAttributes[i]);
-        }        
+        }
         this.newAttributes = null
 
         this.postdataset(this.selectedDataset);
       }
     },
     addDataSet(){
-      if(this.selectedDataset === null)
-        return;
 
       this.attribChanged();
 
@@ -177,7 +214,7 @@ const define_dataset_component = new Vue({
       // TODO: REST endpoint does not exist yet...
       
       // location expected to be /api/datasets/:id
-      fetch("http://localhost:4567" + this.location, {
+      fetch("http://localhost:4567", {
         body: JSON.stringify(dataset),
         method: "POST",
         headers: {
@@ -187,7 +224,12 @@ const define_dataset_component = new Vue({
       .then(response => response.json())
       .then((data) => {
         this.selectedDataset = data;
-      })        
+      })
+      this.selectedDataset = null;
+      this.newAttributes = null;
+      this.selAttrib = null;
+
+      this.getdataset();
     }
   },
   computed: {
@@ -231,9 +273,12 @@ const define_dataset_component = new Vue({
         </div>
       </div>
     </div>
-
-    <div v-if="selectedDataset !== null" class="card mb-3">      
-      <div align="center">
+    
+    <div align="center">
+    <div>
+      <label for="datasetName">Dataset Name</label>
+      <input id="datasetName" name="datasetName" type="text">
+    </div>
       <div>
         <label for="attribName">New Attribute Name</label>
         <input id="attribName" name="attribName" type="text">
@@ -279,12 +324,10 @@ const define_dataset_component = new Vue({
         <span class="error" name="error" id="error"></span>
       </label>
     </div>
-    </div>
+
+
 
     <div v-if="newAttributes !== null" class="card mb-3">
-      <div class="card-header">
-        <i class="fa fa-table"></i>Sample {{getSampleCount}}
-      </div>
       <div class="card-body">
         <div class="table-responsive">        
           <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -303,7 +346,7 @@ const define_dataset_component = new Vue({
                   {{obj.values}}
                 </td>
                 <td v-else-if="obj.type == 'floating-point' || obj.type == 'integer'">
-                   upper: {{obj.bounds.upper}}, lower: {{obj.bounds.lower}}
+                  upper: {{obj.bounds.upper}}, lower: {{obj.bounds.lower}}
                 </td>
                 <td v-else></td>
               </td>
@@ -320,7 +363,7 @@ const define_dataset_component = new Vue({
     
     <div v-if="selectedDataset !== null" class="card mb-3">
       <div class="card-header">
-        <i class="fa fa-table"></i>Selected Dataset Data</div>
+        <i class="fa fa-table"></i>Dataset Definition "{{selectedDataset.definition.name}}"</div>
       <div class="card-body">
         <div class="table-responsive">        
           <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">

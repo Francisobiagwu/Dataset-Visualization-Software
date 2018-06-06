@@ -117,26 +117,11 @@ const append_dataset_component = new Vue({
 
         if(inputObj != null) {
           // We've got valid inputs, add the sample...
-
-          // function Dataset (defn) {
-          //   this.definition = defn;
-          //   this.samples = []; 
-          // }
-
-          // Dataset.prototype.addSample = function(attrib, type, value) {          
-          //   //this.samples.push(inputObj);
-          //   //this.samples.push({attrib : {type, value}});
-          //   this.samples.push({attrib : {type, value}});
-          // };
-          
           if(!this.newSample){
             this.newSample = {};
           }
           
           Vue.set(this.newSample, inputObj.name, inputObj.payload)
-          //this.newSample[inputObj.name] = inputObj.payload;
-
-          // this.newDataset.addSample(inputObj);
                     
           this.log("Dataset added.");
         }
