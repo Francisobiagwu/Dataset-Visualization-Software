@@ -5,7 +5,7 @@ import java.util.Optional;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 
-public class EngineSingleton implements Engine {
+public class EngineSingleton {
 
 	protected static volatile EngineSingleton instance = null;
 	
@@ -19,7 +19,7 @@ public class EngineSingleton implements Engine {
 			instance = new EngineSingleton();
 		return instance;
 	}
-	@Override
+	//@Override
 	public Optional<Dataset> forId(String id) {
 		// TODO Auto-generated method stub
 		Optional<Dataset> dataset;
@@ -27,14 +27,14 @@ public class EngineSingleton implements Engine {
 		return null;
 	}
 
-	@Override
+	//@Override
 	public Dataset create(Definition definition) {
 		// TODO Auto-generated method stub
 		
 		return null;
 	}
 
-	@Override
+	//@Override
 	public String createViz(Visualization visualization) {
 		// TODO Auto-generated method stub
 		return null;

@@ -7,18 +7,30 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Collections;
+import java.util.Collection;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 
 final class MemEngine implements Engine {
+    private static Optional<MemEngine> instance = Optional.empty();
     final Map<UUID, Dataset> datasets = new HashMap<>();
+
+    static MemEngine getInstance() {
+        instance = Optional.of(instance.orElseGet(MemEngine::new));
+        return instance.get();
+    }
 
     @Override
     public Dataset create(Definition def) {
         MemDataset dataset = new MemDataset(def);
         datasets.put(dataset.id, dataset);
         return dataset;
+    }
+
+    @Override
+    public Collection<Dataset> listDatasets() {
+        return Collections.unmodifiableCollection(datasets.values());
     }
 
     @Override
