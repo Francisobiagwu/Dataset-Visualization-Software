@@ -200,6 +200,13 @@ const define_dataset_component = new Vue({
 
       
     },
+    getData(){
+      fetch("http://localhost:4567/api/datasets")
+      .then(response => response.json())
+      .then((data) => {
+        this.datasets = data;
+      })
+    },
     getdataset(location, i) {
       this.location = location;
       fetch("http://localhost:4567" + location, {
@@ -229,7 +236,7 @@ const define_dataset_component = new Vue({
       this.newAttributes = null;
       this.selAttrib = null;
 
-      this.getdataset();
+      this.getData();
     }
   },
   computed: {
@@ -241,11 +248,7 @@ const define_dataset_component = new Vue({
     }
   },
   mounted() {
-    fetch("http://localhost:4567/api/datasets")
-      .then(response => response.json())
-      .then((data) => {
-        this.datasets = data;
-      })
+    this.getData();
   },
   template: ` 
   <div>
@@ -275,10 +278,14 @@ const define_dataset_component = new Vue({
     </div>
     
     <div align="center">
-    <div>
-      <label for="datasetName">Dataset Name</label>
-      <input id="datasetName" name="datasetName" type="text">
-    </div>
+      <div v-if="selectedDataset !== null">
+        <label for="datasetName">Dataset Name</label>
+        <input v-model="selectedDataset.definition.name" id="datasetName" name="datasetName" type="text">
+      </div>
+      <div v-else>
+        <label for="datasetName">Dataset Name</label>
+        <input  id="datasetName" name="datasetName" type="text">
+      </div>
       <div>
         <label for="attribName">New Attribute Name</label>
         <input id="attribName" name="attribName" type="text">
@@ -318,14 +325,12 @@ const define_dataset_component = new Vue({
             <input id="attribValue" name="attribValue"  type="text">
           </div>
         </div>
-      </div>
-      <button v-model="newAttributes" id="add" v-on:click="addDataSet()">Add</button>          
+      </div>      
+      <button id="add" v-on:click="addDataSet()">Add</button>          
       <label for="add">
         <span class="error" name="error" id="error"></span>
       </label>
     </div>
-
-
 
     <div v-if="newAttributes !== null" class="card mb-3">
       <div class="card-body">
