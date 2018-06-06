@@ -41,9 +41,40 @@ class DemoRouting extends Routing {
         };
     }
 
+    private static class StubDataset implements Dataset {
+        private final String id;
+        StubDataset() {
+            this.id = "any-old-id";
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return "";
+        }
+
+        @Override
+        public Definition getDefinition() {
+            return null;
+        }
+
+        @Override
+        public List<Sample> getSamples() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void addSample(Sample sample) {
+        }
+    }
+
     private static class Histogram extends Visualization.Histogram {
         Histogram() {
-            super("histogram",
+            super("histogram", new StubDataset(),
                     new Attribute.Enumerated("color", "Blue", "Green", "Red"));
         }
         @Override
@@ -68,7 +99,7 @@ class DemoRouting extends Routing {
 
     private static class Series extends Visualization.Series {
         Series() {
-            super("series",
+            super("series", new StubDataset(),
                     new Attribute.FloatingPoint("temperature", 30.0, 10.0));
         }
         @Override
@@ -93,7 +124,7 @@ class DemoRouting extends Routing {
 
     private static class Scatter extends Visualization.Scatter {
         Scatter() {
-            super("scatter",
+            super("scatter", new StubDataset(),
                     new Attribute.Int("commanded-volume", 0, 11),
                     new Attribute.Int("real-volume",0,20));
         }

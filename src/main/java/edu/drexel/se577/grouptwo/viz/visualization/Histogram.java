@@ -18,7 +18,7 @@ import org.jfree.data.statistics.HistogramType;
 public class Histogram extends Visualization.Histogram {
 
     private Histogram() {
-        super("fake", new Attribute.Int("bin", 0, 0));
+        super("fake", null, new Attribute.Int("bin", 0, 0));
     }
 
 	public static void main(String[] args) {

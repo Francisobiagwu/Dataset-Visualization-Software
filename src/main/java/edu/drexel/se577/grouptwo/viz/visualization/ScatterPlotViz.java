@@ -27,20 +27,13 @@ import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.storage.EngineSingleton;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization.Image;
 
-public class ScatterPlotViz extends Visualization.Scatter {
+class ScatterPlotViz extends Visualization.Scatter {
+    private final String name; 
 	
-	private static volatile ScatterPlotViz scatterPlot = null;
-	
-	protected ScatterPlotViz(String datasetId, Attribute.Arithmetic xAxis, Attribute.Arithmetic yAxis)
+	ScatterPlotViz(String name, String id, Dataset dataset, Attribute.Arithmetic xAxis, Attribute.Arithmetic yAxis)
 	{
-		super(datasetId, xAxis, yAxis);
-	}
-	
-	public ScatterPlotViz getInstance(String datasetId, Attribute.Arithmetic xAxis, Attribute.Arithmetic yAxis)
-	{
-		if(scatterPlot == null)
-			scatterPlot = new ScatterPlotViz(datasetId, xAxis, yAxis);
-		return scatterPlot;
+		super(id, dataset, xAxis, yAxis);
+        this.name = name;
 	}
 
 	public static XYDataset createDataset()
@@ -98,9 +91,7 @@ public class ScatterPlotViz extends Visualization.Scatter {
 	
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		String returnName = xAxis.name() + " " + yAxis.name();
-		return returnName;
+		return name;
 	}
 
 
@@ -108,10 +99,7 @@ public class ScatterPlotViz extends Visualization.Scatter {
 	@Override
 	public List<DataPoint> data() {
 		// TODO Auto-generated method stub
-		EngineSingleton engine = EngineSingleton.getInstance();
-		Optional<Dataset> datasetOp = engine.forId(datasetId);
-		Dataset dataset = datasetOp.get();
-		List<Sample> list = dataset.getSamples();
+		List<Sample> list = getDataset().getSamples();
 		List<DataPoint> dataPoints = new ArrayList<>();
 		for(Sample loop : list)
 		{

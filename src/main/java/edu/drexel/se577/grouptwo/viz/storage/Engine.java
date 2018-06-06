@@ -9,7 +9,9 @@ public interface Engine {
     Optional<Dataset> forId(String id);
     Dataset create(Definition definition);
     Collection<Dataset> listDatasets();
-    String createViz(Visualization visualization);
+    Visualization createViz(Visualization visualization);
+    Optional<Visualization> getVisualization(String id);
+    Collection<Visualization> listVisualizations();
 
     public static Engine getInstance() {
         return MemEngine.getInstance();

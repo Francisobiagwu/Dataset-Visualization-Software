@@ -24,7 +24,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 public class XYScatterPlotFrame extends Visualization.Scatter {
 
     private XYScatterPlotFrame() {
-        super("fake", new Attribute.Int("X", 0,0),new Attribute.Int("Y", 0,0));
+        super("fake", null, new Attribute.Int("X", 0,0),new Attribute.Int("Y", 0,0));
     }
 
 

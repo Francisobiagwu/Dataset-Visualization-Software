@@ -31,19 +31,13 @@ import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.storage.EngineSingleton;
 
-public class HistogramViz extends Visualization.Histogram {
+class HistogramViz extends Visualization.Histogram {
+    private final String name;
 
-	private HistogramViz hisViz = null;
-	protected HistogramViz(String datasetId, Countable attribute) {
-		super(datasetId, attribute);
+	HistogramViz(String name, String id, Dataset dataset, Countable attribute) {
+		super(id, dataset, attribute);
+        this.name = name;
 		// TODO Auto-generated constructor stub
-	}
-
-	public HistogramViz getInstance(String datasetId, Countable attribute)
-	{
-		if(hisViz == null)
-			hisViz = new HistogramViz(datasetId, attribute);
-		return hisViz;
 	}
 
     private static final class Counter extends Value.DefaultVisitor {
@@ -140,11 +134,8 @@ public class HistogramViz extends Visualization.Histogram {
 	@Override
 	public List<DataPoint> data() {
         // TODO: implement extractors for the ints and string types.
-		EngineSingleton engine = EngineSingleton.getInstance();
         final Counter counter = new Counter();
-        Dataset dataset =  engine.forId(datasetId)
-            .orElseThrow(() -> new RuntimeException("Missing Dataset"));
-        dataset.getSamples().forEach(sample -> {
+        getDataset().getSamples().forEach(sample -> {
             Value value = sample.get(attribute.name())
                 .orElseThrow(() -> new RuntimeException("Missing Value"));
             value.accept(counter);
@@ -168,8 +159,7 @@ public class HistogramViz extends Visualization.Histogram {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return attribute.name();
+		return name;
 	}
 
 }

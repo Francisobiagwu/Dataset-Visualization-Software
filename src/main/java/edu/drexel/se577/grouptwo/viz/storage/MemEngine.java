@@ -11,10 +11,12 @@ import java.util.Collection;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
+import edu.drexel.se577.grouptwo.viz.visualization.Upgrader;
 
 final class MemEngine implements Engine {
     private static Optional<MemEngine> instance = Optional.empty();
     final Map<UUID, Dataset> datasets = new HashMap<>();
+    final Map<UUID, Visualization> visualizations = new HashMap<>();
 
     static MemEngine getInstance() {
         instance = Optional.of(instance.orElseGet(MemEngine::new));
@@ -39,8 +41,21 @@ final class MemEngine implements Engine {
     }
 
     @Override
-    public String createViz(Visualization visualization) {
-        return "FOO";
+    public Visualization createViz(Visualization visualization) {
+        UUID id = UUID.randomUUID();
+        Visualization prime = Upgrader.upgrade(id.toString(), visualization);
+        visualizations.put(id, prime);
+        return prime;
+    }
+
+    @Override
+    public Optional<Visualization> getVisualization(String id) {
+        return Optional.ofNullable(visualizations.get(UUID.fromString(id)));
+    }
+
+    @Override
+    public Collection<Visualization> listVisualizations() {
+        return Collections.unmodifiableCollection(visualizations.values());
     }
 
     static final class MemDataset implements Dataset {

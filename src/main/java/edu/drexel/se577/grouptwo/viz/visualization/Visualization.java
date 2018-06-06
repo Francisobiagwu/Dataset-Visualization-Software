@@ -3,6 +3,7 @@ package edu.drexel.se577.grouptwo.viz.visualization;
 import java.util.List;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
 
 /**
@@ -27,6 +28,7 @@ public interface Visualization {
 
     String getName();
     String getId();
+    Dataset getDataset();
 
     void accept(Visitor visitor);
 
@@ -38,11 +40,13 @@ public interface Visualization {
     }
 
     public abstract class Series implements Visualization {
-        public final String datasetId;
+        public final String id;
         public final Attribute.Arithmetic attribute;
+        private final Dataset dataset;
 
-        protected Series(String datasetId, Attribute.Arithmetic attribute) {
-            this.datasetId = datasetId;
+        protected Series(String id, Dataset dataset, Attribute.Arithmetic attribute) {
+            this.id = id;
+            this.dataset = dataset;
             this.attribute = attribute;
         }
 
@@ -52,15 +56,21 @@ public interface Visualization {
         }
 
         @Override
+        public final Dataset getDataset() {
+            return dataset;
+        }
+
+        @Override
         public final String getId() {
-            return datasetId;
+            return id;
         }
 
         public abstract List<Value> data();
     }
 
     public abstract class Histogram implements Visualization {
-        public final String datasetId;
+        public final String id;
+        public final Dataset dataset;
         public final Attribute.Countable attribute;
 
         public static final class DataPoint {
@@ -72,8 +82,9 @@ public interface Visualization {
             }
         }
 
-        protected Histogram(String datasetId, Attribute.Countable attribute) {
-            this.datasetId = datasetId;
+        protected Histogram(String id, Dataset dataset, Attribute.Countable attribute) {
+            this.id = id;
+            this.dataset = dataset;
             this.attribute = attribute;
         }
 
@@ -84,14 +95,20 @@ public interface Visualization {
 
         @Override
         public final String getId() {
-            return datasetId;
+            return id;
+        }
+
+        @Override
+        public final Dataset getDataset() {
+            return dataset;
         }
 
         public abstract List<DataPoint> data();
     }
 
     public abstract class Scatter implements Visualization {
-        public final String datasetId;
+        public final String id;
+        public final Dataset dataset;
         public final Attribute.Arithmetic xAxis;
         public final Attribute.Arithmetic yAxis;
 
@@ -106,18 +123,25 @@ public interface Visualization {
         }
 
         protected Scatter(
-                String datasetId,
+                String id,
+                Dataset dataset,
                 Attribute.Arithmetic xAxis,
                 Attribute.Arithmetic yAxis)
         {
-            this.datasetId = datasetId;
+            this.id = id;
+            this.dataset = dataset;
             this.xAxis = xAxis;
             this.yAxis = yAxis;
         }
 
         @Override
         public final String getId() {
-            return datasetId;
+            return id;
+        }
+
+        @Override
+        public final Dataset getDataset() {
+            return dataset;
         }
 
         @Override

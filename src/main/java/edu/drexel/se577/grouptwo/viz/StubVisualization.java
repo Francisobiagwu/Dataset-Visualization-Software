@@ -2,6 +2,9 @@ package edu.drexel.se577.grouptwo.viz;
 
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
+import edu.drexel.se577.grouptwo.viz.dataset.Definition;
+import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import java.util.Optional;
 import java.util.List;
@@ -68,7 +71,7 @@ class StubVisualization {
         private final String name;
 
         Series(String name, String datasetId, Attribute.Arithmetic attr) {
-            super(datasetId, attr);
+            super("",new StubDataset(datasetId), attr);
             this.name = name;
         }
 
@@ -92,7 +95,7 @@ class StubVisualization {
         private final String name;
 
         Histogram(String name, String datasetId, Attribute.Countable attr) {
-            super(datasetId, attr);
+            super("", new StubDataset(datasetId), attr);
             this.name = name;
         }
         @Override
@@ -111,6 +114,37 @@ class StubVisualization {
         }
     }
 
+    private static class StubDataset implements Dataset {
+        private final String id;
+        StubDataset(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return "";
+        }
+
+        @Override
+        public Definition getDefinition() {
+            return null;
+        }
+
+        @Override
+        public List<Sample> getSamples() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void addSample(Sample sample) {
+        }
+    }
+
     static class Scatter extends Visualization.Scatter {
         private final String name;
 
@@ -118,7 +152,7 @@ class StubVisualization {
                 Attribute.Arithmetic x,
                 Attribute.Arithmetic y)
         {
-            super(datasetId, x, y);
+            super("", new StubDataset(datasetId),x, y);
             this.name = name;
         }
 

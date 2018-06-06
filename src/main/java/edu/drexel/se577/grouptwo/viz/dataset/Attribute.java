@@ -57,6 +57,12 @@ public interface Attribute {
         public void accept(Visitor visitor) {
             visitor.visit(this);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            // TODO: come up with a better implementation of this later
+            return false;
+        }
     }
 
     public static final class Int implements Attribute, Countable, Arithmetic {
@@ -80,6 +86,15 @@ public interface Attribute {
             visitor.visit(this);
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            if (!Int.class.isInstance(obj)) return false;
+            Int other = Int.class.cast(obj);
+            if (!name.equals(other.name)) return false;
+            if (max != other.max) return false;
+            if (min != other.min) return false;
+            return true;
+        }
 
     }
 
@@ -102,6 +117,18 @@ public interface Attribute {
         @Override
         public void accept(Visitor visitor) {
             visitor.visit(this);
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (!FloatingPoint.class.isInstance(obj)) return false;
+            FloatingPoint other = FloatingPoint.class.cast(obj);
+
+            if (!name.equals(other.name)) return false;
+            if (max != other.max) return false;
+            if (min != other.min) return false;
+
+            return true;
         }
     }
 
@@ -127,6 +154,18 @@ public interface Attribute {
         public void accept(Visitor visitor) {
             visitor.visit(this);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            // TODO: test this method
+            if (!Enumerated.class.isInstance(obj)) return false;
+            Enumerated other = Enumerated.class.cast(obj);
+
+            if (!name.equals(other.name)) return false;
+            if (!choices.equals(other.choices)) return false;
+
+            return true;
+        }
     }
 
     public static final class Arbitrary implements Attribute, Countable {
@@ -144,6 +183,17 @@ public interface Attribute {
         @Override
         public void accept(Visitor visitor) {
             visitor.visit(this);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            // TODO: test this method
+            if (!Arbitrary.class.isInstance(obj)) return false;
+            Arbitrary other = Arbitrary.class.cast(obj);
+
+            if (!name.equals(other.name)) return false;
+
+            return true;
         }
     }
 
