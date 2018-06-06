@@ -2,21 +2,27 @@ package edu.drexel.se577.grouptwo.viz.parsers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
+import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 import edu.drexel.se577.grouptwo.viz.filetypes.XLSFileContents;
@@ -24,17 +30,13 @@ import edu.drexel.se577.grouptwo.viz.filetypes.XLSFileContents;
 /**
  * XLSInputHandler This class is responsible for parsing a bytearray of excel
  * sheet into the required format.
- * 
- * @author Francis Obiagwu
- * @version 1
- * @date 5/28/2018
  */
 
 public class XLSInputHandler implements FileInputHandler {
 
     static String EXT_XLS = "application/xls";
     static String EXT_XLSX = "application/xlsx";
-
+    
     Attribute.Int attributeInt;
     Attribute.FloatingPoint attributeFloatingPoint;
     Attribute.Arbitrary attributeArbitary;
@@ -49,72 +51,169 @@ public class XLSInputHandler implements FileInputHandler {
 
     @Override
     public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {
+        XLSFileContents contents = new XLSFileContents(name);
         try {
-            Map<String, String[]> map = new HashMap<>();
+            ByteArrayInputStream stream = new ByteArrayInputStream(inputBuffer);
 
-            ByteArrayInputStream file = new ByteArrayInputStream(inputBuffer);
+            // Use an InputStream, needs more memory
+            Workbook wb = WorkbookFactory.create(stream);
+            Sheet sheet = wb.getSheetAt(0);
 
-            HSSFWorkbook hssfWorkbook = new HSSFWorkbook(file); // create and object which will be used to read the
-                                                                // excel file
-            HSSFSheet sheet = hssfWorkbook.getSheetAt(0);
             Iterator<org.apache.poi.ss.usermodel.Row> rowIterator = sheet.iterator();
 
+            String sKey = "";
+            List<Value> values = new ArrayList<>();
+            int maxInts = 0, minInts = 0;
+            float maxFloats = 0,minFloats = 0;
+            List<Integer> integers = new ArrayList<>();
+            List<Float> floats = new ArrayList<>();
+            Set<String> enumerated = new HashSet<String>();
+            
             while (rowIterator.hasNext()) { // navigate the excel sheet one row at a time
                 org.apache.poi.ss.usermodel.Row row = rowIterator.next();
                 Iterator<Cell> cellIterator = row.cellIterator();
-                int count = 0; // used to determine the id column
-                String id = null;
-                int numberOfColumns = row.getPhysicalNumberOfCells();
-                String values[] = new String[numberOfColumns - 1];
-
+                                    
                 while (cellIterator.hasNext()) { // for each row, go through each column
                     Cell cell = cellIterator.next();
 
-                    switch (cell.getCellType()) {
-                    case Cell.CELL_TYPE_BOOLEAN: // this section currently not used. It is provided for extensibility
-                        System.out.print(cell.getBooleanCellValue() + "\t\t");
-                        break;
-                    case Cell.CELL_TYPE_NUMERIC: // since we are only considering numeric at this time
-                        System.out.print(cell.getNumericCellValue() + "\t\t");
-                        if (count == 0) {
-                            id = String.valueOf(cell.getNumericCellValue());
-                        } else {
-                            values[count - 1] = String.valueOf(cell.getNumericCellValue());
-                        }
-                        break;
+                    if(cell.getCellTypeEnum() != CellType.STRING)
+                        continue;
 
-                    case Cell.CELL_TYPE_STRING: // this section is for extensibility
-                        System.out.print(cell.getStringCellValue() + "\t\t");
-                        break;
+                    String value = cell.getStringCellValue();
+                    if (value == null || value.isEmpty() || value.contains("#")) {
+                        continue;
                     }
-                    count += 1;
+
+                    sKey = value;
+                    break;
                 }
-                System.out.println(id + ": " + Arrays.toString(values));
-                map.put(id, values);
+
+                if (sKey.isEmpty())
+                    continue;
+                
+                while (cellIterator.hasNext()) { // for each row, go through each column
+                    Cell cell = cellIterator.next();
+
+                    // ignore any cells of type CellType.ERROR, CellType.BLANK or CellType.FORMULA                    
+                    if(cell.getCellTypeEnum() == CellType.BOOLEAN) {
+                        // Only unique values for enum
+                        if(!enumerated.contains("True_False")){
+                            edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
+                                "True");
+                            values.add(fp);
+                            fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
+                                "False");
+                            values.add(fp);
+                            enumerated.add("True");
+                            enumerated.add("False");
+                        }
+                    } else if(cell.getCellTypeEnum() == CellType.STRING) {
+                        String token = cell.getStringCellValue();
+
+                        if (token.isEmpty())
+                            continue;
+
+                        // Check to see if the value was a comma delimited list./**
+                        // commas were replaced with pipes above.
+                        if (token.contains(",")) {                            
+                            String[] enums = token.toString().split(",");
+
+                            for (int enm = 0; enm < enums.length; enm++) {
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
+                                    enums[enm]);
+                                values.add(fp);
+
+                                // Only unique values for enum
+                                if(!enumerated.contains(enums[enm])){
+                                    enumerated.add(enums[enm]);
+                                }
+                            }
+                        } else {
+                            // look to see if strings a known enumeration (enum must be previously defined)
+                            if(enumerated.contains(token)){
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
+                                    token);
+                                values.add(fp);
+                            } else {
+                                // Alright, all thats left is that the value is an arbitrary string.
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                                        token);
+                                values.add(ap);
+                            }
+                        }
+
+                    } else if(cell.getCellTypeEnum() == CellType.NUMERIC) {                        
+                        Double value = cell.getNumericCellValue();
+
+                        // Extra work but we want o classify the number as an integer if possible.
+                        String token = value.toString();
+                        try {
+                            // falls though when value has a mantissa.
+                            int val = Integer.parseInt(token);
+                            edu.drexel.se577.grouptwo.viz.dataset.Value.Int fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Int(
+                                    val);
+                            values.add(fp);
+                            integers.add(val);
+                            continue;
+                        } catch (NumberFormatException ex) {
+                            // Not an integer... thats fine.
+                        }
+
+                        try {
+                            // Apprently were dealing with a decimal
+                            float val = Float.parseFloat(token);
+                            edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint(
+                                    val);
+                            values.add(fp);
+                            floats.add(val);
+                            continue;
+                        } catch (NumberFormatException ex) {
+                            // Not a float? really?. add as arbitrary
+                            edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                                    token);
+                            values.add(ap);
+                        }
+                    } 
+                }
+            }            
+            stream.close();
+            wb.close();
+           
+            // Determine min/max integers and floats, then add attributes.            
+            if(integers.size() > 0){
+                maxInts = Collections.max(integers);
+                minInts = Collections.min(integers);
             }
-            file.close();
 
-            List<Integer> keys = new LinkedList<>(); // A List object that will be used to discover the max and min int
-            for (String key : map.keySet()) {
-                Double d = Double.parseDouble(key);
-                Integer i = d.intValue();
-                keys.add(i);
+            if(floats.size() > 0){
+                maxFloats = Collections.max(floats);            
+                minFloats = Collections.min(floats); 
             }
 
-            int max = Collections.max(keys);
-            int min = Collections.min(keys);
-            attributeInt = new Attribute.Int("?", max, min);
-            // System.out.println(max +" "+ min);
-            attributeFloatingPoint = new Attribute.FloatingPoint("?", max, min);
-            // definition.put(value, attributeInt); // not sure what value will should be
-            // passed as parameter
+            contents.getDefinition().put(new Attribute.Int("integer", maxInts, minInts));
+            contents.getDefinition().put(new Attribute.FloatingPoint("floating", maxFloats, minFloats));
 
-            hssfWorkbook.close();
+            // Add arbitrary type
+            contents.getDefinition().put(new Attribute.Arbitrary("comment"));
+
+            // Add enumerated type, given found enumerations
+            contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
+
+            int count = 1;
+            Sample s = new Sample();
+            contents.getSamples().add(s);
+            for (Value v : values) {
+                s.put(sKey + Integer.toString(count), v);
+                contents.getSamples().add(s);
+            }
+
+        } catch (InvalidFormatException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return Optional.of(new XLSFileContents(name));
+        return Optional.of(contents);
     }
 
 }
