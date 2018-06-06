@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
 import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
-import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
