@@ -49,6 +49,6 @@ class RealRouting extends Routing {
     }
 
     Collection<? extends Visualization> listVisualizations() {
-        return null;
+        return Engine.getInstance().listVisualizations();
     }
 }
