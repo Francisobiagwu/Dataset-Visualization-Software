@@ -32,7 +32,7 @@ import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 
 public class CSVInputHandler implements FileInputHandler {
 
-    static String EXT_CSV = "application/csv";
+    public static String EXT_CSV = "application/csv";
 
     @Override
     public boolean CanParse(String ext) {
@@ -112,7 +112,7 @@ public class CSVInputHandler implements FileInputHandler {
                     for (int t = 0; t < tokens.length; t++) {
                         String token = tokens[t];
 
-                        // isNumeric fails on 25.5...?
+                        // isNumeric fails on 25.5... naughty Oracle has a defect
                         String tempStr = token.replace(".", "");
                         if (StringUtils.isNumeric(tempStr)) {
                             try {
@@ -151,24 +151,40 @@ public class CSVInputHandler implements FileInputHandler {
                                     edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
                                             enums[enm]);
                                     values.add(fp);
-                                    enumerated.add(enums[enm]);
+
+                                    // Only unique values for enum
+                                    if(!enumerated.contains(enums[enm])){
+                                        enumerated.add(enums[enm]);
+                                    }
                                 }
                             } else {
-                                // Alright, all thats left is that the value is an arbitrary string.
-                                edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                                // look to see if strings a known enumeration (enum must be previously defined)
+                                if(enumerated.contains(token)){
+                                    edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
                                         token);
-                                values.add(ap);
+                                    values.add(fp);
+                                } else {
+                                    // Alright, all thats left is that the value is an arbitrary string.
+                                    edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                                            token);
+                                    values.add(ap);
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // Determine min/max integers and floats, then add attributes.
-            maxInts = Collections.max(integers);
-            minInts = Collections.min(integers);
-            maxFloats = Collections.max(floats);            
-            minFloats = Collections.min(floats); 
+            // Determine min/max integers and floats, then add attributes.            
+            if(integers.size() > 0){
+                maxInts = Collections.max(integers);
+                minInts = Collections.min(integers);
+            }
+
+            if(floats.size() > 0){
+                maxFloats = Collections.max(floats);            
+                minFloats = Collections.min(floats); 
+            }
 
             contents.getDefinition().put(new Attribute.Int("integer", maxInts, minInts));
             contents.getDefinition().put(new Attribute.FloatingPoint("floating", maxFloats, minFloats));

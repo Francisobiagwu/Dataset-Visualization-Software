@@ -7,7 +7,7 @@ const visualize_dataset_component = new Vue({
     },
     methods: {
       getdataset(location, i) {
-        fetch("http://localhost:4567" + location, {
+        fetch(location, {
           method: "GET"
         })
         .then(response => response.json())

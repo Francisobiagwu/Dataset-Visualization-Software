@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
 
+import edu.drexel.se577.grouptwo.viz.parsers.CSVInputHandler;
+import edu.drexel.se577.grouptwo.viz.parsers.XLSInputHandler;
+
 class FileInputMapping {
     private final Map<String, FileInputHandler> handlers;
 
@@ -11,8 +14,11 @@ class FileInputMapping {
 
     private FileInputMapping() {
         Map<String, FileInputHandler> handlers = new HashMap<>();
-        // TODO: add mime-type to FileInputHandler Implementations here ala
         // handlers.put("video/ogg", new OggFileInputHandler());
+        
+        handlers.put(CSVInputHandler.EXT_CSV, new CSVInputHandler());
+        handlers.put(XLSInputHandler.EXT_XLS, new XLSInputHandler());
+        handlers.put(XLSInputHandler.EXT_XLSX, new XLSInputHandler());
         this.handlers = handlers;
     }
 

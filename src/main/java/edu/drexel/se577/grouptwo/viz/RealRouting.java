@@ -1,13 +1,14 @@
 package edu.drexel.se577.grouptwo.viz;
 
-import java.util.Collection;
-import edu.drexel.se577.grouptwo.viz.storage.Dataset;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
-import edu.drexel.se577.grouptwo.viz.dataset.Definition;
-import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
-import java.util.Optional;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Optional;
+
+import edu.drexel.se577.grouptwo.viz.dataset.Definition;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.storage.Engine;
+import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 
 class RealRouting extends Routing {
 
@@ -45,7 +46,7 @@ class RealRouting extends Routing {
 
     @Override
     Optional<? extends FileInputHandler> getFileHandler(String contentType) {
-        return null;
+        return FileInputHandler.forType(contentType);
     }
 
     Collection<? extends Visualization> listVisualizations() {

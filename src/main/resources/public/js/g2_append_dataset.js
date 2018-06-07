@@ -117,26 +117,11 @@ const append_dataset_component = new Vue({
 
         if(inputObj != null) {
           // We've got valid inputs, add the sample...
-
-          // function Dataset (defn) {
-          //   this.definition = defn;
-          //   this.samples = []; 
-          // }
-
-          // Dataset.prototype.addSample = function(attrib, type, value) {          
-          //   //this.samples.push(inputObj);
-          //   //this.samples.push({attrib : {type, value}});
-          //   this.samples.push({attrib : {type, value}});
-          // };
-          
           if(!this.newSample){
             this.newSample = {};
           }
           
           Vue.set(this.newSample, inputObj.name, inputObj.payload)
-          //this.newSample[inputObj.name] = inputObj.payload;
-
-          // this.newDataset.addSample(inputObj);
                     
           this.log("Dataset added.");
         }
@@ -151,7 +136,7 @@ const append_dataset_component = new Vue({
       },
       getdataset(location, i) {
         this.location = location;
-        fetch("http://localhost:4567" + location, {
+        fetch(location, {
           method: "GET"
         })
         .then(response => response.json())
@@ -163,8 +148,8 @@ const append_dataset_component = new Vue({
         // TODO: REST endpoint does not exist yet...
         
         // location expected to be /api/datasets/:id
-        fetch("http://localhost:4567" + this.location, {
-          body: JSON.stringify(dataset),
+        fetch("/api/datasets", {
+          body: JSON.stringify(dataset.definition),
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -185,7 +170,7 @@ const append_dataset_component = new Vue({
       }
     },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;

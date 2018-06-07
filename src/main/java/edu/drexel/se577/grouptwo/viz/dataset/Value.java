@@ -1,9 +1,8 @@
 package edu.drexel.se577.grouptwo.viz.dataset;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public interface Value {

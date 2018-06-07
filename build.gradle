@@ -18,6 +18,7 @@ repositories {
 dependencies {
 	compile group: 'com.opencsv', name: 'opencsv', version: '3.7'
 	compile group: 'org.apache.poi', name: 'poi', version: '3.17'
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     compile group: 'org.jfree', name: 'jfreechart', version: '1.0.19'
     compile group: 'org.jfree', name: 'jcommon', version: '1.0.23'

@@ -21,8 +21,47 @@ const define_dataset_component = new Vue({
       var aLower = null;
       var aUpper = null;
       var aType = this.selAttrib;
+      var aDatasetName = document.getElementById("datasetName").value;
       var aName = document.getElementById("attribName").value;
-      
+            
+      if(!aDatasetName){
+        this.log("Please provide a dataset name for the sample attribute.");
+        return null;
+      }
+
+      var bailBadDatasetName = false;
+      if(this.datasets){
+        this.datasets.forEach(function(t) {
+          if(t.name === aDatasetName){
+            bailBadDatasetName = true;
+          }
+        }); 
+      }
+
+      if(bailBadDatasetName){        
+        this.log("Please provide a dataset name for the sample attribute.");
+        return;
+      }
+
+      if(!this.selectedDataset){
+        // create dataset;
+        this.selectedDataset = {
+           "definition" :  { "name" : aDatasetName, "attributes" : [] },
+           "samples" : []
+        }
+
+        // function Dataset () {
+        //   this.definition = ;
+        //   this.samples = []; 
+        // }
+
+        // Dataset.prototype.addSample = function(attrib, type, value) {          
+        //   //this.samples.push(inputObj);
+        //   //this.samples.push({attrib : {type, value}});
+        //   this.samples.push({attrib : {type, value}});
+        // };
+      }
+
       if(!aName){
         this.log("Please provide a name for the sample attribute.");
         return null;
@@ -71,6 +110,9 @@ const define_dataset_component = new Vue({
           return null;
         }
 
+        aLower = Number(aLower);
+        aUpper = Number(aUpper);
+
         if(aLower > aUpper){
           this.log("Lower must be lower than or equal to upper.");
           return null;
@@ -100,7 +142,7 @@ const define_dataset_component = new Vue({
       if(aType === "enumerated"){
         return {"name" : aName, "type" : aType, "values" : aValue};
       }else if(aType === "floating-point" || aType === "integer"){
-        return {"name" : aName, "type" : aType, "bounds" : {"upper" : aUpper, "lower": aLower} };
+        return {"name" : aName, "type" : aType, "bounds" : {"max" : aUpper, "min": aLower} };
       }else if(aType === "arbitrary"){
         return {"name" : aName, "type" : aType };
       }
@@ -126,15 +168,13 @@ const define_dataset_component = new Vue({
       if(this.newAttributes && this.selectedDataset){
         for (var i in this.newAttributes) {
           this.selectedDataset.definition.attributes.push(this.newAttributes[i]);
-        }        
+        }
         this.newAttributes = null
 
         this.postdataset(this.selectedDataset);
       }
     },
     addDataSet(){
-      if(this.selectedDataset === null)
-        return;
 
       this.attribChanged();
 
@@ -163,9 +203,16 @@ const define_dataset_component = new Vue({
 
       
     },
+    getData(){
+      fetch("/api/datasets")
+      .then(response => response.json())
+      .then((data) => {
+        this.selectedDataset = data;
+      })     
+    },
     getdataset(location, i) {
       this.location = location;
-      fetch("http://localhost:4567" + location, {
+      fetch(location, {
         method: "GET"
       })
       .then(response => response.json())
@@ -174,20 +221,37 @@ const define_dataset_component = new Vue({
       })        
     },
     postdataset(dataset) {
-      // TODO: REST endpoint does not exist yet...
+      function handleErrors(response) {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response;
+      }
       
-      // location expected to be /api/datasets/:id
-      fetch("http://localhost:4567" + this.location, {
-        body: JSON.stringify(dataset),
+      fetch("/api/datasets", {
+        body: JSON.stringify(dataset.definition),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
       })
-      .then(response => response.json())
+      .then(handleErrors).then(
+        (success) => {
+          this.log(success);
+          this.getData();  
+        }
+      ) 
       .then((data) => {
         this.selectedDataset = data;
-      })        
+      }).catch(
+        error => console.log(error) // Handle the error response object
+      );
+
+      // this.selectedDataset = null;
+      // this.newAttributes = null;
+      // this.selAttrib = null;
+
+      //this.getData();
     }
   },
   computed: {
@@ -199,11 +263,7 @@ const define_dataset_component = new Vue({
     }
   },
   mounted() {
-    fetch("http://localhost:4567/api/datasets")
-      .then(response => response.json())
-      .then((data) => {
-        this.datasets = data;
-      })
+    this.getData();
   },
   template: ` 
   <div>
@@ -231,9 +291,16 @@ const define_dataset_component = new Vue({
         </div>
       </div>
     </div>
-
-    <div v-if="selectedDataset !== null" class="card mb-3">      
-      <div align="center">
+    
+    <div align="center">
+      <div v-if="selectedDataset !== null">
+        <label for="datasetName">Dataset Name</label>
+        <input v-model="selectedDataset.definition.name" id="datasetName" name="datasetName" type="text">
+      </div>
+      <div v-else>
+        <label for="datasetName">Dataset Name</label>
+        <input  id="datasetName" name="datasetName" type="text">
+      </div>
       <div>
         <label for="attribName">New Attribute Name</label>
         <input id="attribName" name="attribName" type="text">
@@ -273,18 +340,14 @@ const define_dataset_component = new Vue({
             <input id="attribValue" name="attribValue"  type="text">
           </div>
         </div>
-      </div>
-      <button v-model="newAttributes" id="add" v-on:click="addDataSet()">Add</button>          
+      </div>      
+      <button id="add" v-on:click="addDataSet()">Add</button>          
       <label for="add">
         <span class="error" name="error" id="error"></span>
       </label>
     </div>
-    </div>
 
     <div v-if="newAttributes !== null" class="card mb-3">
-      <div class="card-header">
-        <i class="fa fa-table"></i>Sample {{getSampleCount}}
-      </div>
       <div class="card-body">
         <div class="table-responsive">        
           <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -303,7 +366,7 @@ const define_dataset_component = new Vue({
                   {{obj.values}}
                 </td>
                 <td v-else-if="obj.type == 'floating-point' || obj.type == 'integer'">
-                   upper: {{obj.bounds.upper}}, lower: {{obj.bounds.lower}}
+                  upper: {{obj.bounds.max}}, lower: {{obj.bounds.min}}
                 </td>
                 <td v-else></td>
               </td>
@@ -320,7 +383,7 @@ const define_dataset_component = new Vue({
     
     <div v-if="selectedDataset !== null" class="card mb-3">
       <div class="card-header">
-        <i class="fa fa-table"></i>Selected Dataset Data</div>
+        <i class="fa fa-table"></i>Dataset Definition "{{selectedDataset.definition.name}}"</div>
       <div class="card-body">
         <div class="table-responsive">        
           <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">

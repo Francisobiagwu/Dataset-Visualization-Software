@@ -1,39 +1,36 @@
 package edu.drexel.se577.grouptwo.viz;
 
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.StreamSupport;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonSerializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
-import spark.Spark;
-import spark.Route;
-import java.net.URI;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Collection;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import java.util.stream.Collectors;
-import edu.drexel.se577.grouptwo.viz.storage.Dataset;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
-import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
+import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
-import java.util.Optional;
+import spark.Route;
+import spark.Spark;
 
 public abstract class Routing {
     private static final String INTEGER = "integer";

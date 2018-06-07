@@ -7,7 +7,7 @@ const existing_datasets_component = new Vue({
     },
     methods: {
       getdataset(location, i) {
-        fetch("http://localhost:4567" + location, {
+        fetch(location, {
           method: "GET"
         })
         .then(response => response.json())
@@ -16,7 +16,7 @@ const existing_datasets_component = new Vue({
         })
       },
       deletedataset(location, i) {
-        fetch("http://localhost:4567" + location, {
+        fetch("/api/datasets" + location, {
           method: "DELETE"
         })
         .then(() => {
@@ -24,7 +24,7 @@ const existing_datasets_component = new Vue({
         })
       },
       updatedataset(dataset) {
-        fetch("http://localhost:4567" + dataset.location, {
+        fetch("/api/datasets" + dataset.location, {
           body: JSON.stringify(dataset),
           method: "PUT",
           headers: {
@@ -37,7 +37,7 @@ const existing_datasets_component = new Vue({
       }
     },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;

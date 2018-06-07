@@ -1,18 +1,15 @@
 package edu.drexel.se577.grouptwo.viz.visualization;
 
-import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -20,6 +17,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
+import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 
 public class XYScatterPlotFrame extends Visualization.Scatter {
 
