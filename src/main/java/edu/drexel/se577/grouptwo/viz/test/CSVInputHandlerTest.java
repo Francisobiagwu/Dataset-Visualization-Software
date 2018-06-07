@@ -12,9 +12,8 @@ public class CSVInputHandlerTest
 {
     public static void main( String[] args )
     {
-        try {        
-            Path currentRelativePath = Paths.get("");
-            Path path = Paths.get(currentRelativePath + "src\\main\\java\\edu\\drexel\\se577\\grouptwo\\viz\\test\\test.csv");
+        try {
+            Path path = Paths.get("src\\main\\java\\edu\\drexel\\se577\\grouptwo\\viz\\test\\test.csv");
             byte[] data = Files.readAllBytes(path);
             new CSVInputHandler().parseFile("test.csv",data);
         }catch(Exception e){
