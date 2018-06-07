@@ -16,7 +16,7 @@ const visualize_dataset_component = new Vue({
         })
       },
       getvisdata(location, i, type) {
-        fetch("http://localhost:4567" + location, {
+        fetch("" + location, {
           method: "GET"
         })
         .then(response => response.json())
@@ -26,7 +26,7 @@ const visualize_dataset_component = new Vue({
       }
     },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;
