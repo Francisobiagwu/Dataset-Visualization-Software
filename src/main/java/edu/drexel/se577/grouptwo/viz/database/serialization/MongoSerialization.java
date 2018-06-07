@@ -15,7 +15,5 @@ public interface MongoSerialization {
     
     public Visualization toVisualization(Document document);
     public Dataset toDataset(Document document);
-    public String getDatasetName(Document document);
-    public String getVizName(Document document);
 
 }

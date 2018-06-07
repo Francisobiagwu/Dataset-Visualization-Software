@@ -6,6 +6,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,33 +48,40 @@ public class EngineSingleton implements Engine {
 	}
 	
 	@Override
-	public Visualization createViz(Visualization visualization) {	
-		return repo.createViz(visualization);
+	public Visualization createViz(Visualization visualization) {
+		repo.createViz(visualization);
+		Visualization newViz = repo.getVisualization(visualization.getId());
+		return newViz;
+	}
+	
+	@Override
+	public Optional<Visualization> getVisualization(String id) {
+		Optional<Visualization> newViz = Optional.of(repo.getVisualization(id));
+		return newViz;
 	}
 	
 	@Override 
-	public Optional<Dataset> forId(Definition definition) {
-		Dataset _dataset = repo.find(definition);
+	public Optional<Dataset> forId(String id) {
+		Dataset _dataset = repo.find(id);
+		Optional<Dataset> d = Optional.of(_dataset);	
 		
 		if (_dataset != null)
 		{
 			_dataset.addRepo(repo);	
-
-		}
+		}	
 		
-		Optional<Dataset> d = Optional.of(_dataset);	
 		return d; 
 	}
 	
 	@Override
-	public List<String> getDatasetNames()
+	public Collection<Dataset> listDatasets()
 	{
-		return repo.getDatasetNames();
+		return repo.listDatasets();
 	};
 	
 	@Override
-	public List<String> getVisualizationNames()
+	public Collection<Visualization> listVisualizations()
 	{
-		return repo.getVisualizationNames();
+		return repo.listVisualizations();
 	};
 }

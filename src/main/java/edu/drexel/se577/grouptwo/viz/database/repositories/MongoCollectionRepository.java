@@ -2,6 +2,7 @@
 package edu.drexel.se577.grouptwo.viz.database.repositories;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
@@ -22,7 +23,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 public class MongoCollectionRepository implements Repository {
     protected MongoClient _mongoClient;
@@ -109,42 +109,97 @@ public class MongoCollectionRepository implements Repository {
     }
 
     @Override
-    public Visualization createViz(Visualization visualization) {
+    public String createViz(Visualization visualization) {
+    	String vizId = null;
     	
         try{
-            Document doc = _gSonProxy.getDocument(visualization);
-            _vizCollection.insertOne(doc);
-
+        	
+        	if (nonDupViz(visualization))
+        	{      	
+        		Document doc = _gSonProxy.getDocument(visualization);
+        		_vizCollection.insertOne(doc);        
+        		vizId = visualization.getId();
+        	}
+                        
         }catch(Exception e){
             if(_Logger != null){
                 _Logger.LogCritical("MongoCollectionRepository:create error for document " + ". Exception: " + e);
             }
         }
         
-        return visualization;
-    }    
+        return vizId;
+
+    } 
+        
+    private boolean nonDupViz(Visualization visualization)
+    {
+        try{
+        	
+            	BasicDBObject query = new BasicDBObject();
+            	query.put("datasetId", visualization.getId());
+            	Document doc = _vizCollection.find(query).first(); 
+            
+            	if (doc != null)
+            	{
+            		return false; /*document exists*/
+            	}
+            
+        }catch(Exception e){
+            if(_Logger != null){
+                _Logger.LogCritical("MongoCollectionRepository:create error for document " + ". Exception: " + e);
+            }
+        }
+        
+        return true;
+    }
     
     @Override
     public void addSample(Dataset dataset) {
         // Query Object
-    	BasicDBObject query = new BasicDBObject();
+        BasicDBObject query = new BasicDBObject();
         query.put("name", dataset.getName());
 
         update(dataset, query);
+        
     }
     
-    private void update(Dataset dataset, BasicDBObject query) {
+    @Override
+	public Visualization getVisualization(String id) {
+        // Query Object
+    	Visualization _viz = null;
+       	
+        try {  
+        	BasicDBObject query = new BasicDBObject();
+        	query.put("name", id);
+        	Document doc = _vizCollection.find(query).first(); 
+        
+        	if (doc != null)
+        	{
+        		_viz = _gSonProxy.toVisualization(doc);
+        	}
+        
+        } catch (Exception e) {
+        	if(_Logger != null){
+        		_Logger.LogCritical("MongoCollectionRepository:update error for document "  + ". Exception: " + e);
+        }
+    }
+        
+        return _viz;
+    }
 
-        try {
+    
+    private void update(Dataset dataset, BasicDBObject query) {
+    	
+        try {  	
             Document doc = _gSonProxy.getDocument(dataset);
-            _dsCollection.findOneAndReplace(query, doc); 
+            _dsCollection.findOneAndReplace(query, doc);
             
         } catch (Exception e) {
             if(_Logger != null){
                 _Logger.LogCritical("MongoCollectionRepository:update error for document "  + ". Exception: " + e);
             }
         }
-        
+
     }
 
     @Override 
@@ -153,90 +208,60 @@ public class MongoCollectionRepository implements Repository {
        	Dataset _dataset = null;
        	
         try {  
-           	BasicDBObject query = new BasicDBObject();
-           	query.put("name", definition.name);
-           	Document doc = _dsCollection.find(query).first(); 
-        
-           	if (doc != null)
-           	{
-           		_dataset = _gSonProxy.toDataset(doc);
-           	}
-        
-        } catch (Exception e) {
-            if(_Logger != null){
-                _Logger.LogCritical("MongoCollectionRepository:error for finding dataset "  + ". Exception: " + e);
-            }
-        }
-        
-        return _dataset;
-    }
-    
-    @Override 
-    public Dataset find(String name) {
-        // Query Object
-    	Dataset _dataset = null;
-    		
-    	try {  		
-        		
-        		BasicDBObject query = new BasicDBObject();
-        		query.put("name", new ObjectId(name));
-        		Document doc = _dsCollection.find(query).first(); 
+        	BasicDBObject query = new BasicDBObject();
+        	query.put("name", definition.name);
+        	Document doc = _dsCollection.find(query).first(); 
         
         	if (doc != null)
         	{
         		_dataset = _gSonProxy.toDataset(doc);
         	}
         
-        	} catch (Exception e) {
-        		if(_Logger != null){
-        			_Logger.LogCritical("MongoCollectionRepository:update error for document "  + ". Exception: " + e);
-        		}
-        	}
+        } catch (Exception e) {
+        	if(_Logger != null){
+        		_Logger.LogCritical("MongoCollectionRepository:update error for document "  + ". Exception: " + e);
+        }
+    }
+        
+        return _dataset;
+    }
+  
+    @Override
+    public Dataset find(String Id) {
+    	Dataset _dataset = null;
+    	
+    	try {
+	
+        BasicDBObject query = new BasicDBObject();
+        query.put("name", Id);
+        Document doc = _dsCollection.find(query).first(); 
+        
+        if (doc != null)
+        {
+        	_dataset = _gSonProxy.toDataset(doc);
+        }
+        
+    } catch (Exception e) {
+        if(_Logger != null){
+            _Logger.LogCritical("MongoCollectionRepository:update error for document "  + ". Exception: " + e);
+        }
+    }
+        
         return _dataset;
 
     }
 
     @Override
 	public List<Sample> getSamples(String name) {
-    	
-    		List<Sample> myList = new ArrayList<Sample>();
-    		BasicDBObject query = new BasicDBObject();
-    		query.put("name", name);
-    		
-    		try {
-    		
-	        	Document doc = _dsCollection.find(query).first();         
-	        	Dataset _dataset =  _gSonProxy.toDataset(doc);
-	        	myList = _dataset.getSamples();
-
-        	} catch (Exception e) {
-            if(_Logger != null){
-                _Logger.LogCritical("MongoCollectionRepository:find error using query " + query.toJson() + ". Exception: " + e);
-            	}
-        	}
-
-	        return myList;
-
-	}
-    
-    @Override
-    public List<String> getDatasetNames()
-    {
-   	 List<String> myList = new ArrayList<String>();
-   	 BasicDBObject query = new BasicDBObject();
- 
-   	 try {
-   		       
-   		 /*Make this better - _collection.distinct requiring field and class)*/
-   		 FindIterable<Document> docs  = _dsCollection.find(query);
-
-   		 for (Document doc : docs) { 
-   			 	String name = _gSonProxy.getDatasetName(doc);
-   			 	if (!myList.contains(name))
-   			 	{
-   			 		myList.add(name);
-   			 	}
-   			}
+    	List<Sample> myList = new ArrayList<Sample>();
+		BasicDBObject query = new BasicDBObject();
+        query.put("name", name);
+   
+        try {
+        	
+        	Document doc = _dsCollection.find(query).first();         
+        	Dataset _dataset =  _gSonProxy.toDataset(doc);
+        	myList = _dataset.getSamples();
 
         } catch (Exception e) {
             if(_Logger != null){
@@ -245,36 +270,60 @@ public class MongoCollectionRepository implements Repository {
         }
 
         return myList;
+
+	}
+    
+       
+    @Override
+    public Collection<Dataset> listDatasets()
+    {  
+    	Collection<Dataset> datasetColl = null;
+    	 BasicDBObject query = new BasicDBObject();
+  
+    	 try {
+
+    		 FindIterable<Document> docs  = _dsCollection.find(query);
+
+    		 for (Document doc : docs) { 
+    			 Dataset _dataset =  _gSonProxy.toDataset(doc);
+    			 datasetColl.add(_dataset);
+
+    			}
+
+        } catch (Exception e) {
+            if(_Logger != null){
+                _Logger.LogCritical("MongoCollectionRepository:find error using query " + query.toJson() + ". Exception: " + e);
+
+            }
+        }
+
+        return datasetColl;
     }
 
 	@Override
-    public List<String> getVisualizationNames()
+    public Collection<Visualization> listVisualizations()
     {
-    	
-    	List<String> myList = new ArrayList<String>();
+
+		Collection<Visualization> vizColl = null;
     	BasicDBObject query = new BasicDBObject();
     	
     	/*make this better*/
         try {
         	FindIterable<Document> docs = _vizCollection.find(query);
 
-
             for (Document doc : docs) { 
-   			 	String name = _gSonProxy.getVizName(doc);
-			 	if (!myList.contains(name))
-			 	{
-			 		myList.add(name);
-			 	}
+   			 	Visualization _viz = _gSonProxy.toVisualization(doc);
+   			 	vizColl.add(_viz);
             }
+            
         } catch (Exception e) {
             if(_Logger != null){
                 _Logger.LogCritical("MongoCollectionRepository:find error using query " + query.toJson() + ". Exception: " + e);
             }
         }
 
-        return myList;
+        return vizColl;
     }
-
 }
 
 

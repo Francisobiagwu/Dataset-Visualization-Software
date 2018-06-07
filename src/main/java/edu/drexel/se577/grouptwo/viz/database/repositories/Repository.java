@@ -1,5 +1,6 @@
 package edu.drexel.se577.grouptwo.viz.database.repositories;
 
+import java.util.Collection;
 import java.util.List;
 
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
@@ -10,12 +11,13 @@ import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 public interface Repository  {
 
     public Dataset create(Definition definition);
-    public Visualization createViz(Visualization visualization);
+    public String createViz(Visualization visualization);
     public Dataset find(Definition definition);
     public Dataset find(String id);
     public void addSample(Dataset dataset);
     public List<Sample> getSamples(String id);
-    public List<String> getDatasetNames();
-    public List<String> getVisualizationNames();
+    public Collection<Dataset> listDatasets();
+    public Collection<Visualization> listVisualizations();
+    public Visualization getVisualization(String id);
     
 }

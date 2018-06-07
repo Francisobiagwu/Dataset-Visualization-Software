@@ -26,6 +26,7 @@ import edu.drexel.se577.grouptwo.viz.dataset.Value;
 public interface Visualization {
 
     void accept(Visitor visitor);
+    String getId();
 
     Image render(); // Should we add image type?
 
@@ -46,6 +47,12 @@ public interface Visualization {
         @Override
         public final void accept(Visitor visitor) {
             visitor.visit(this);
+        }
+        
+        @Override
+        public String getId()
+        {
+        	return datasetId;
         }
 
         public abstract List<Value> data();
@@ -73,6 +80,13 @@ public interface Visualization {
         public final void accept(Visitor visitor) {
             visitor.visit(this);
         }
+        
+        @Override
+        public String getId()
+        {
+        	return datasetId;
+        }
+ 
 
         public abstract List<DataPoint> data();
     }
@@ -108,6 +122,12 @@ public interface Visualization {
         }
 
         public abstract List<DataPoint> data();
+        
+        @Override
+        public String getId()
+        {
+        	return datasetId;
+        }
     }
 
     public interface Visitor {
