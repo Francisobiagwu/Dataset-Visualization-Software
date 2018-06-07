@@ -11,8 +11,11 @@ class FileInputMapping {
 
     private FileInputMapping() {
         Map<String, FileInputHandler> handlers = new HashMap<>();
-        // TODO: add mime-type to FileInputHandler Implementations here ala
         // handlers.put("video/ogg", new OggFileInputHandler());
+        
+        handlers.put(CSVInputHandler.EXT_CSV, new CSVInputHandler());
+        handlers.put(XLSInputHandler.EXT_XLS, new XLSInputHandler());
+        handlers.put(XLSInputHandler.EXT_XLSX, new XLSInputHandler());
         this.handlers = handlers;
     }
 

@@ -3,8 +3,8 @@ package edu.drexel.se577.grouptwo.viz.visualization;
 import java.util.List;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
-import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 
 /**
  * Interface for the definition and realization of visualizations.

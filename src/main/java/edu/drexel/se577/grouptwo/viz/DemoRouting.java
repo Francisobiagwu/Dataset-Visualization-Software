@@ -202,11 +202,6 @@ class DemoRouting extends Routing {
         private final Dataset model = new DemoDataset();
 
         @Override
-        public boolean CanParse(String filetype) {
-            return true;
-        }
-
-        @Override
         public Optional<? extends FileContents> parseFile(String name, byte[] buffer) {
             return Optional.of(new FileContents() {
                 @Override

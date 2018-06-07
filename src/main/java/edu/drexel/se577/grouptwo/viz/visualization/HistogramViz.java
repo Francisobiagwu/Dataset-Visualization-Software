@@ -6,15 +6,12 @@ import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Random;
-import java.util.stream.IntStream;
-import java.util.Map;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 import javax.imageio.ImageIO;
 
@@ -26,10 +23,8 @@ import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute.Countable;
-import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
-import edu.drexel.se577.grouptwo.viz.storage.EngineSingleton;
 
 class HistogramViz extends Visualization.Histogram {
     private final String name;

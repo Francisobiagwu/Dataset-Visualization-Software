@@ -1,8 +1,9 @@
 package edu.drexel.se577.grouptwo.viz.visualization;
 
-import edu.drexel.se577.grouptwo.viz.storage.Engine;
-import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import java.util.Optional;
+
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
+import edu.drexel.se577.grouptwo.viz.storage.Engine;
 
 /**
  * Class for upgrading stub versions of visualizations to working ones.

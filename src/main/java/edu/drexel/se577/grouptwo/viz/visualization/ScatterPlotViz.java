@@ -24,8 +24,6 @@ import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint;
 import edu.drexel.se577.grouptwo.viz.storage.Dataset;
-import edu.drexel.se577.grouptwo.viz.storage.EngineSingleton;
-import edu.drexel.se577.grouptwo.viz.visualization.Visualization.Image;
 
 class ScatterPlotViz extends Visualization.Scatter {
     private final String name; 

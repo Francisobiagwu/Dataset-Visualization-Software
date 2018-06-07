@@ -96,9 +96,6 @@ const append_dataset_component = new Vue({
       addSampleToSelDefn() {
         if(this.newSample && this.selectedDataset){
           this.selectedDataset.samples.push(this.newSample);
-          //Vue.set(this.newSample, {});
-          this.newSample = null
-
           this.postdataset(this.selectedDataset);
         }
       },
@@ -145,11 +142,8 @@ const append_dataset_component = new Vue({
         })        
       },
       postdataset(dataset) {
-        // TODO: REST endpoint does not exist yet...
-        
-        // location expected to be /api/datasets/:id
         fetch(this.location, {
-          body: JSON.stringify(dataset),
+          body: JSON.stringify(this.newSample),
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -158,7 +152,9 @@ const append_dataset_component = new Vue({
         .then(response => response.json())
         .then((data) => {
           this.selectedDataset = data;
-        })        
+        })
+
+        this.newSample = null
       }
     },
     computed: {
@@ -170,7 +166,7 @@ const append_dataset_component = new Vue({
       }
     },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;
@@ -285,7 +281,7 @@ const append_dataset_component = new Vue({
             </table>
           </div>
         </div>
-        <button v-model="selectedDataset" id="append" name="append" v-on:click="addSampleToSelDefn()">Add</button>          
+        <button v-model="selectedDataset" id="append" name="append" v-on:click="addSampleToSelDefn()">Save Dataset</button>          
         <label for="append">
           <span class="error" name="appEndError" id="appEndError"></span>
         </label>

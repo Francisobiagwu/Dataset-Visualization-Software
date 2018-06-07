@@ -1,7 +1,7 @@
 const define_dataset_component = new Vue({
   el: "#define_dataset",
   data: {
-    datasets: [],
+    datasets: null,
     location: null,
     selectedDataset: null,
     newAttributes: null,
@@ -110,8 +110,8 @@ const define_dataset_component = new Vue({
           return null;
         }
 
-        aLower = Number(aLower)
-        aUpper = Number(aUpper)
+        aLower = Number(aLower);
+        aUpper = Number(aUpper);
 
         if(aLower > aUpper){
           this.log("Lower must be lower than or equal to upper.");
@@ -207,12 +207,16 @@ const define_dataset_component = new Vue({
       fetch("/api/datasets")
       .then(response => response.json())
       .then((data) => {
-        this.datasets = data;
-      })
+        if(data && data.length > 0){
+          this.datasets = data;
+        } else {
+          this.datasets = null;
+        }
+      })     
     },
     getdataset(location, i) {
       this.location = location;
-      fetch( location, {
+      fetch(location, {
         method: "GET"
       })
       .then(response => response.json())
@@ -221,9 +225,13 @@ const define_dataset_component = new Vue({
       })        
     },
     postdataset(dataset) {
-      // TODO: REST endpoint does not exist yet...
+      function handleErrors(response) {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response;
+      }
       
-      // location expected to be /api/datasets/:id
       fetch("/api/datasets", {
         body: JSON.stringify(dataset.definition),
         method: "POST",
@@ -231,10 +239,15 @@ const define_dataset_component = new Vue({
           "Content-Type": "application/json",
         },
       })
-      .then(response => response.json())
-      .then((data) => {
-        this.selectedDataset = data;
-      })
+      .then(handleErrors).then(
+        (success) => {
+          this.log(success);
+          this.getData();  
+        }
+      ).catch(
+        error => console.log(error) // Handle the error response object
+      );
+
       this.selectedDataset = null;
       this.newAttributes = null;
       this.selAttrib = null;
@@ -255,27 +268,30 @@ const define_dataset_component = new Vue({
   },
   template: ` 
   <div>
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fa fa-table"></i>Existing Datasets</div>
-      <div class="card-body">
-        <div class="table-responsive">        
-          <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-            <thead>
-              <tr>
-                <th>Definition Name</th>
-                <th>Location</th>
-                <th>Select</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="dataset, i in datasets">
-                <td>{{dataset.name}}</td>
-                <td>{{dataset.location}}</td>
-                <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
-              </tr>
-            </tbody>
-          </table>
+  
+    <div v-if="datasets !== null" class="card mb-3">
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="fa fa-table"></i>Existing Datasets</div>
+        <div class="card-body">
+          <div class="table-responsive">        
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Definition Name</th>
+                  <th>Location</th>
+                  <th>Select</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="dataset, i in datasets">
+                  <td>{{dataset.name}}</td>
+                  <td>{{dataset.location}}</td>
+                  <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

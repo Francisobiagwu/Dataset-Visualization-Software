@@ -5,7 +5,7 @@ const upload_dataset_component = new Vue({
     },
     methods: {
     fetchDatasets(){
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
       .then(response => response.json())
       .then((data) => {
         this.datasets = data;
@@ -53,7 +53,7 @@ const upload_dataset_component = new Vue({
           }
           var type = "application/" + ext;          
 
-          fetch("http://localhost:4567/api/datasets?name=" + dataSetName, {
+          fetch("/api/datasets?name=" + dataSetName, {
             body: file,
             method: "POST",
             headers: {

@@ -7,37 +7,17 @@ const existing_datasets_component = new Vue({
     },
     methods: {
       getdataset(location, i) {
-        fetch("http://localhost:4567" + location, {
+        fetch(location, {
           method: "GET"
         })
         .then(response => response.json())
         .then((data) => {
           this.selectedDataset = data;
         })
-      },
-      deletedataset(location, i) {
-        fetch("http://localhost:4567" + location, {
-          method: "DELETE"
-        })
-        .then(() => {
-          this.datasets.splice(i, 1);
-        })
-      },
-      updatedataset(dataset) {
-        fetch("http://localhost:4567" + dataset.location, {
-          body: JSON.stringify(dataset),
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then(() => {
-          this.editdataset = null;
-        })
       }
     },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;
@@ -121,18 +101,3 @@ const existing_datasets_component = new Vue({
     </div>
     `,
 });
-
-
-
-{/* <li v-for="dataset, i in datasets">
-<div v-if="editdataset === dataset.name">
-  <input v-on:keyup.13="updatedataset(dataset)" v-model="dataset.location" />
-  <button v-on:click="updatedataset(dataset)">save</button>
-</div>
-<div v-else>
-  <button v-on:click="editdataset = dataset.name">edit</button>
-  <button v-on:click="deletedataset(dataset.location, i)">X</button>
-  <button v-on:click="getdataset(dataset.location, i)">Get Data</button>
-  {{dataset.location}}
-</div>
-</li> */}

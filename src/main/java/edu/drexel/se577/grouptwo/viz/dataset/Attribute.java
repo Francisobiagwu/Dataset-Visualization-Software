@@ -1,13 +1,13 @@
 package edu.drexel.se577.grouptwo.viz.dataset;
 
-import java.util.Set;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.HashMap;
-import java.util.stream.Stream;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface Attribute {
 

@@ -1,14 +1,15 @@
 package edu.drexel.se577.grouptwo.viz;
 
-import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
-import edu.drexel.se577.grouptwo.viz.storage.Dataset;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
-import java.util.Optional;
-import java.util.List;
-import java.util.Collections;
+import edu.drexel.se577.grouptwo.viz.storage.Dataset;
+import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 
 class StubVisualization {
     private static class CountableExtraction implements Attribute.Visitor {

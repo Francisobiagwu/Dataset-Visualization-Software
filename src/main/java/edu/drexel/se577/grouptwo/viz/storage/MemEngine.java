@@ -1,17 +1,18 @@
 package edu.drexel.se577.grouptwo.viz.storage;
 
-import java.util.UUID;
-import java.util.Map;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Collections;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
-import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 import edu.drexel.se577.grouptwo.viz.visualization.Upgrader;
+import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
 
 final class MemEngine implements Engine {
     private static Optional<MemEngine> instance = Optional.empty();

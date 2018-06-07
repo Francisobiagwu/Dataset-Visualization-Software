@@ -1,4 +1,4 @@
-package edu.drexel.se577.grouptwo.viz.parsers;
+package edu.drexel.se577.grouptwo.viz.filetypes;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +31,7 @@ import edu.drexel.se577.grouptwo.viz.filetypes.XLSFileContents;
  * sheet into the required format.
  */
 
-public class XLSInputHandler implements FileInputHandler {
+class XLSInputHandler implements FileInputHandler {
 
     static String EXT_XLS = "application/xls";
     static String EXT_XLSX = "application/xlsx";
@@ -43,11 +42,6 @@ public class XLSInputHandler implements FileInputHandler {
     Attribute.Enumerated attributeEnumerated;
     Definition definition;
     String value;
-
-    @Override
-    public boolean CanParse(String ext) {
-        return ext.equalsIgnoreCase(EXT_XLS) || ext.equalsIgnoreCase(EXT_XLSX);
-    }
 
     @Override
     public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {

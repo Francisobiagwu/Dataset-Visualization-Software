@@ -1,4 +1,4 @@
-package edu.drexel.se577.grouptwo.viz.parsers;
+package edu.drexel.se577.grouptwo.viz.filetypes;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,14 +30,9 @@ import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
  * @date 5/28/2018
  */
 
-public class CSVInputHandler implements FileInputHandler {
+class CSVInputHandler implements FileInputHandler {
 
     static String EXT_CSV = "application/csv";
-
-    @Override
-    public boolean CanParse(String ext) {
-        return ext.equalsIgnoreCase(EXT_CSV);
-    }
 
     @Override
     public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {

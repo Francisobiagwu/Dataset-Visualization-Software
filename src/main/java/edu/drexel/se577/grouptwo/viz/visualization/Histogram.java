@@ -1,12 +1,10 @@
 package edu.drexel.se577.grouptwo.viz.visualization;
 
-import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
-
 import java.io.File;
 import java.util.Arrays;
-import java.util.Random;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -14,6 +12,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
+
+import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 
 public class Histogram extends Visualization.Histogram {
 

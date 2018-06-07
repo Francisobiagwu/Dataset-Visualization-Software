@@ -1,12 +1,8 @@
-package edu.drexel.se577.grouptwo.viz.test;
+package edu.drexel.se577.grouptwo.viz.filetypes;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.Path;
-
-import edu.drexel.se577.grouptwo.viz.parsers.CSVInputHandler;
+import java.nio.file.Paths;
 
 public class CSVInputHandlerTest 
 {
@@ -15,10 +11,9 @@ public class CSVInputHandlerTest
         try {
             Path path = Paths.get("src\\main\\java\\edu\\drexel\\se577\\grouptwo\\viz\\test\\test.csv");
             byte[] data = Files.readAllBytes(path);
-            new CSVInputHandler().parseFile("test.csv",data);
-        }catch(Exception e){
-            e.printStackTrace();    
+            new CSVInputHandler().parseFile("test.csv", data);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 }
