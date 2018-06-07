@@ -46,7 +46,7 @@ public abstract class Routing {
         DatasetRef[] refs = datasets.stream()
             .map(dataset -> {
                 DatasetRef ref = new DatasetRef();
-                URI id = URI.create(dataset.getId());
+                URI id = URI.create(dataset.getId()); //factory method implementation
                 ref.name = dataset.getName();
                 ref.location = DATASETS_PATH.resolve(id);
                 return ref;
@@ -77,7 +77,7 @@ public abstract class Routing {
     }
 
     final URI instanciateDefinition(String body) {
-        DefinitionRep rep = gson.fromJson(body, DefinitionRep.class);
+        DefinitionRep rep = gson.fromJson(body, DefinitionRep.class); //factory method implementation
         final Definition def = new Definition(rep.name);
         Stream.of(rep.attributes)
             .forEach(attr -> {
@@ -155,7 +155,7 @@ public abstract class Routing {
             final Sample sample = new Sample();
             if (!json.isJsonObject()) throw new JsonParseException(
                     "Sample not formatted correctly");
-            final JsonObject asObject = json.getAsJsonObject();
+            final JsonObject asObject = json.getAsJsonObject(); //factory method implementation
             asObject.keySet().stream()
                 .forEach(key -> {
                     sample.put(key, context.deserialize(
@@ -169,7 +169,7 @@ public abstract class Routing {
     private static final class ValueGsonAdapter implements JsonDeserializer<Value>, JsonSerializer<Value> {
 
         static class ValueSerializer implements Value.Visitor {
-            Optional<? extends JsonElement> elem = Optional.empty();
+            Optional<? extends JsonElement> elem = Optional.empty(); //factory method implementation
 
             @Override
             public void visit(Value.Int value) {
@@ -285,7 +285,7 @@ public abstract class Routing {
     private static Routing instance = null;
 
     static Routing getInstance() {
-        instance = Optional.ofNullable(instance).orElse(new DemoRouting());
+        instance = Optional.ofNullable(instance).orElse(new DemoRouting()); //factory method implementation
         return instance;
     }
 
