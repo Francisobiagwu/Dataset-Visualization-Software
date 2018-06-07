@@ -1,7 +1,5 @@
 package edu.drexel.se577.grouptwo.viz.test;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
@@ -12,11 +10,10 @@ public class XLSInputHandlerTest
 {
     public static void main( String[] args )
     {
-        try {        
-            Path currentRelativePath = Paths.get("");
-            Path path = Paths.get(currentRelativePath + "src\\main\\java\\edu\\drexel\\se577\\grouptwo\\viz\\test\\test.xls");
+        try {
+            Path path = Paths.get("src\\main\\java\\edu\\drexel\\se577\\grouptwo\\viz\\test\\test.xlsx");
             byte[] data = Files.readAllBytes(path);
-            new XLSInputHandler().parseFile("test.xls",data);
+            new XLSInputHandler().parseFile("test.xlsx",data);
         }catch(Exception e){
             e.printStackTrace();    
         }
