@@ -110,6 +110,9 @@ const define_dataset_component = new Vue({
           return null;
         }
 
+        aLower = Number(aLower)
+        aUpper = Number(aUpper)
+
         if(aLower > aUpper){
           this.log("Lower must be lower than or equal to upper.");
           return null;
@@ -139,7 +142,7 @@ const define_dataset_component = new Vue({
       if(aType === "enumerated"){
         return {"name" : aName, "type" : aType, "values" : aValue};
       }else if(aType === "floating-point" || aType === "integer"){
-        return {"name" : aName, "type" : aType, "bounds" : {"upper" : aUpper, "lower": aLower} };
+        return {"name" : aName, "type" : aType, "bounds" : {"max" : aUpper, "min": aLower} };
       }else if(aType === "arbitrary"){
         return {"name" : aName, "type" : aType };
       }
@@ -201,7 +204,7 @@ const define_dataset_component = new Vue({
       
     },
     getData(){
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
       .then(response => response.json())
       .then((data) => {
         this.datasets = data;
@@ -209,7 +212,7 @@ const define_dataset_component = new Vue({
     },
     getdataset(location, i) {
       this.location = location;
-      fetch("http://localhost:4567" + location, {
+      fetch( location, {
         method: "GET"
       })
       .then(response => response.json())
@@ -221,8 +224,8 @@ const define_dataset_component = new Vue({
       // TODO: REST endpoint does not exist yet...
       
       // location expected to be /api/datasets/:id
-      fetch("http://localhost:4567", {
-        body: JSON.stringify(dataset),
+      fetch("/api/datasets", {
+        body: JSON.stringify(dataset.definition),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -351,7 +354,7 @@ const define_dataset_component = new Vue({
                   {{obj.values}}
                 </td>
                 <td v-else-if="obj.type == 'floating-point' || obj.type == 'integer'">
-                  upper: {{obj.bounds.upper}}, lower: {{obj.bounds.lower}}
+                  upper: {{obj.bounds.max}}, lower: {{obj.bounds.min}}
                 </td>
                 <td v-else></td>
               </td>

@@ -136,7 +136,7 @@ const append_dataset_component = new Vue({
       },
       getdataset(location, i) {
         this.location = location;
-        fetch("http://localhost:4567" + location, {
+        fetch(location, {
           method: "GET"
         })
         .then(response => response.json())
@@ -148,7 +148,7 @@ const append_dataset_component = new Vue({
         // TODO: REST endpoint does not exist yet...
         
         // location expected to be /api/datasets/:id
-        fetch("http://localhost:4567" + this.location, {
+        fetch(this.location, {
           body: JSON.stringify(dataset),
           method: "POST",
           headers: {
