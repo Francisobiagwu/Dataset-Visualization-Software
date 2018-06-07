@@ -46,7 +46,7 @@ public abstract class Routing {
         DatasetRef[] refs = datasets.stream()
             .map(dataset -> {
                 DatasetRef ref = new DatasetRef();
-                URI id = URI.create(dataset.getId()); //Abstract factory implementation
+                URI id = URI.create(dataset.getId()); //factory method implementation
                 ref.name = dataset.getName();
                 ref.location = DATASETS_PATH.resolve(id);
                 return ref;
@@ -77,7 +77,7 @@ public abstract class Routing {
     }
 
     final URI instanciateDefinition(String body) {
-        DefinitionRep rep = gson.fromJson(body, DefinitionRep.class); //Abstract factory implementation
+        DefinitionRep rep = gson.fromJson(body, DefinitionRep.class); //factory method implementation
         final Definition def = new Definition(rep.name);
         Stream.of(rep.attributes)
             .forEach(attr -> {
@@ -155,7 +155,7 @@ public abstract class Routing {
             final Sample sample = new Sample();
             if (!json.isJsonObject()) throw new JsonParseException(
                     "Sample not formatted correctly");
-            final JsonObject asObject = json.getAsJsonObject(); //Abstract factory method implementation
+            final JsonObject asObject = json.getAsJsonObject(); //factory method implementation
             asObject.keySet().stream()
                 .forEach(key -> {
                     sample.put(key, context.deserialize(
@@ -169,7 +169,7 @@ public abstract class Routing {
     private static final class ValueGsonAdapter implements JsonDeserializer<Value>, JsonSerializer<Value> {
 
         static class ValueSerializer implements Value.Visitor {
-            Optional<? extends JsonElement> elem = Optional.empty(); //Abstract factory method implementation
+            Optional<? extends JsonElement> elem = Optional.empty(); //factory method implementation
 
             @Override
             public void visit(Value.Int value) {
@@ -285,7 +285,7 @@ public abstract class Routing {
     private static Routing instance = null;
 
     static Routing getInstance() {
-        instance = Optional.ofNullable(instance).orElse(new DemoRouting()); //abstract factory implementation
+        instance = Optional.ofNullable(instance).orElse(new DemoRouting()); //factory method implementation
         return instance;
     }
 
@@ -294,7 +294,7 @@ public abstract class Routing {
         private Optional<DefinitionRep.Attribute> product;
         private AttributeSerializer(String name) {
             this.name = name;
-            product = Optional.empty(); //Abstract factory implementation
+            product = Optional.empty();
         }
         static DefinitionRep.Attribute forName(String name, Definition def) {
             Attribute attr = def.get(name)
@@ -310,7 +310,7 @@ public abstract class Routing {
             DefinitionRep.Attribute tmp = new DefinitionRep.Attribute();
             tmp.name = name;
             tmp.type = "arbitrary";
-            product = Optional.of(tmp); //Abstract factory implementation
+            product = Optional.of(tmp);
         }
 
         @Override
@@ -327,7 +327,7 @@ public abstract class Routing {
             tmp.bounds.upper = attr.max;
             tmp.bounds.lower = attr.min;
 
-            product = Optional.of(tmp); //Abstract factory implementation
+            product = Optional.of(tmp);
         }
 
         @Override
@@ -337,7 +337,7 @@ public abstract class Routing {
             tmp.type = "enumerated";
             tmp.values = attr.choices.toArray(new String[0]);
 
-            product = Optional.of(tmp); //Abstract factory implementation
+            product = Optional.of(tmp);
         }
 
         @Override
@@ -349,7 +349,7 @@ public abstract class Routing {
             tmp.bounds.upper = attr.max;
             tmp.bounds.lower = attr.min;
 
-            product = Optional.of(tmp); //Abstract factory implementation
+            product = Optional.of(tmp);
         }
     }
 
