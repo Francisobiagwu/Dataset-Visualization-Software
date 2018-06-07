@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="main/java"/>
+	<classpathentry kind="lib" path="C:/Users/klind/OneDrive/Documents/CS577/Project/mongo-java-driver-3.2.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/klind/OneDrive/Documents/CS577/Project/DB_Repository/jackson-all-1.9.0.jar/jackson-all-1.9.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/klind/OneDrive/Documents/CS577/gson-2.2.2.jar/gson-2.2.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
