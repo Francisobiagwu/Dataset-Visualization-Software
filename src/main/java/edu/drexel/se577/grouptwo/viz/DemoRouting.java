@@ -17,13 +17,13 @@ import edu.drexel.se577.grouptwo.viz.dataset.Value;
 class DemoRouting extends Routing {
     @Override
     Collection<? extends Dataset> listDatasets() {
-        return Stream.of(new DemoDataset())
+        return Stream.of(new DemoDataset()) // factory method implementation
             .collect(Collectors.toList());
     }
 
     @Override
     Optional<? extends Dataset> getDataset(String id) {
-        return Optional.of(new DemoDataset());
+        return Optional.of(new DemoDataset()); // factory method implementation
     }
 
     @Override
