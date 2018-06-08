@@ -22,6 +22,7 @@ import org.bson.BsonInt32;
 import org.bson.BsonDouble;
 import org.bson.BsonString;
 import org.bson.Document;
+import com.mongodb.client.model.Filters;;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -31,10 +32,10 @@ class MongoEngine implements Engine {
     private static final String DATASET_COLLECTION = "DatasetCollection";
     private static final String VISUALIZATION_COLLECTION = "VisualizationCollection";
 
-    private static final String INTEGER = "integer";
-    private static final String FLOATING_POINT = "floating-point";
-    private static final String ARBITRARY = "arbitrary";
-    private static final String ENUMERATED = "enumerated";
+    static final String INTEGER = "integer";
+    static final String FLOATING_POINT = "floating-point";
+    static final String ARBITRARY = "arbitrary";
+    static final String ENUMERATED = "enumerated";
     private final MongoClient client;
     private final MongoDatabase database;
 
@@ -71,7 +72,7 @@ class MongoEngine implements Engine {
             doc.put("type", new BsonString(INTEGER));
             doc.put("name", new BsonString(attr.name()));
             bounds.put("max", new BsonInt32(attr.max));
-            bounds.put("min", new BsonInt32(attr.max));
+            bounds.put("min", new BsonInt32(attr.min));
             doc.put("bounds", bounds);
         }
 
@@ -81,7 +82,7 @@ class MongoEngine implements Engine {
             doc.put("type", new BsonString(FLOATING_POINT));
             doc.put("name", new BsonString(attr.name()));
             bounds.put("max", new BsonDouble(attr.max));
-            bounds.put("min", new BsonDouble(attr.max));
+            bounds.put("min", new BsonDouble(attr.min));
             doc.put("bounds", bounds);
         }
 
@@ -181,10 +182,17 @@ class MongoEngine implements Engine {
     }
 
     @Override
-    public Optional<Dataset> forId(String _id) {
-        ObjectId id = new ObjectId(_id);
-        // TODO: Implement this next
-        return Optional.empty();
+    public Optional<? extends Dataset> forId(String _id) {
+        final ObjectId id = new ObjectId(_id);
+        MongoCollection<Document> datasets =
+            database.getCollection(DATASET_COLLECTION);
+        return StreamSupport.stream(
+                datasets.find(Filters.eq("_id",id)).spliterator(), false)
+            .map(doc -> {
+                Definition def =
+                    toDefinition(doc.get("definition", Document.class));
+                return new MongoDataset(id, def, datasets);
+            }).findFirst();
     }
 
     @Override
