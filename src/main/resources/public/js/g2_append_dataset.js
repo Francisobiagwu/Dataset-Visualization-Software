@@ -96,9 +96,6 @@ const append_dataset_component = new Vue({
       addSampleToSelDefn() {
         if(this.newSample && this.selectedDataset){
           this.selectedDataset.samples.push(this.newSample);
-          //Vue.set(this.newSample, {});
-          this.newSample = null
-
           this.postdataset(this.selectedDataset);
         }
       },
@@ -136,7 +133,7 @@ const append_dataset_component = new Vue({
       },
       getdataset(location, i) {
         this.location = location;
-        fetch("http://localhost:4567" + location, {
+        fetch(location, {
           method: "GET"
         })
         .then(response => response.json())
@@ -145,11 +142,8 @@ const append_dataset_component = new Vue({
         })        
       },
       postdataset(dataset) {
-        // TODO: REST endpoint does not exist yet...
-        
-        // location expected to be /api/datasets/:id
-        fetch("http://localhost:4567" + this.location, {
-          body: JSON.stringify(dataset),
+        fetch(this.location, {
+          body: JSON.stringify(this.newSample),
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -158,7 +152,9 @@ const append_dataset_component = new Vue({
         .then(response => response.json())
         .then((data) => {
           this.selectedDataset = data;
-        })        
+        })
+
+        this.newSample = null
       }
     },
     computed: {
@@ -170,7 +166,7 @@ const append_dataset_component = new Vue({
       }
     },
     mounted() {
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;
@@ -195,7 +191,7 @@ const append_dataset_component = new Vue({
                 <tr v-for="dataset, i in datasets">
                   <td>{{dataset.name}}</td>
                   <td>{{dataset.location}}</td>
-                  <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
+                  <td><button v-on:click="getdataset(dataset.location, i)">Select</button></td>
                 </tr>
               </tbody>
             </table>
@@ -206,11 +202,11 @@ const append_dataset_component = new Vue({
       <div v-if="selectedDataset !== null" class="card mb-3">      
         <div align="center">         
         <div>
-          <label for="attribName">Property Name</label>
+          <label for="attribName">Data Point Name</label>
           <input id="attribName" name="attribName" type="text">
         </div>
         <div>
-          <label for="attribType">Property Type</label>
+          <label for="attribType">Data Point Type</label>
           <select id="attribType" v-on:change="attribChanged()">
             <template v-for="attrib, i in selectedDataset.definition.attributes">  
               <option>{{attrib.type}}</option>
@@ -254,7 +250,7 @@ const append_dataset_component = new Vue({
             </div>
           </div>
         </div>
-        <button v-model="newSample" id="add" v-on:click="addDataSet()">Add</button>          
+        <button v-model="newSample" id="add" v-on:click="addDataSet()">Add Data</button>          
         <label for="add">
           <span class="error" name="error" id="error"></span>
         </label>
@@ -285,7 +281,7 @@ const append_dataset_component = new Vue({
             </table>
           </div>
         </div>
-        <button v-model="selectedDataset" id="append" name="append" v-on:click="addSampleToSelDefn()">Add</button>          
+        <button v-model="selectedDataset" id="append" name="append" v-on:click="addSampleToSelDefn()">Save Dataset</button>          
         <label for="append">
           <span class="error" name="appEndError" id="appEndError"></span>
         </label>
@@ -323,18 +319,3 @@ const append_dataset_component = new Vue({
     </div>
     `,
 });
-
-
-
-{/* <li v-for="dataset, i in datasets">
-<div v-if="editdataset === dataset.name">
-  <input v-on:keyup.13="updatedataset(dataset)" v-model="dataset.location" />
-  <button v-on:click="updatedataset(dataset)">save</button>
-</div>
-<div v-else>
-  <button v-on:click="editdataset = dataset.name">edit</button>
-  <button v-on:click="deletedataset(dataset.location, i)">X</button>
-  <button v-on:click="getdataset(dataset.location, i)">Get Data</button>
-  {{dataset.location}}
-</div>
-</li> */}
