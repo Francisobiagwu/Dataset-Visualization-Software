@@ -10,7 +10,9 @@ import java.util.stream.Collectors;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
+import edu.drexel.se577.grouptwo.viz.dataset.Value;
 import edu.drexel.se577.grouptwo.viz.visualization.Visualization;
+import edu.drexel.se577.grouptwo.viz.visualization.Upgrader;
 
 import org.bson.BsonValue;
 import org.bson.BsonDocument;
@@ -36,6 +38,11 @@ class MongoEngine implements Engine {
     static final String FLOATING_POINT = "floating-point";
     static final String ARBITRARY = "arbitrary";
     static final String ENUMERATED = "enumerated";
+
+    static final String HISTOGRAM = "histogram";
+    static final String SCATTER = "scatter";
+    static final String SERIES = "series";
+
     private final MongoClient client;
     private final MongoDatabase database;
 
@@ -52,6 +59,36 @@ class MongoEngine implements Engine {
     }
 
     private MongoEngine() {
+    }
+
+    private static class VisualizationEncoder implements Visualization.Visitor {
+        private final Document doc;
+
+        VisualizationEncoder(Document doc) {
+            this.doc = doc;
+        }
+
+        @Override
+        public void visit(Visualization.Histogram hist) {
+            doc.put("type", HISTOGRAM);
+            doc.put("datasetId", new ObjectId(hist.getDataset().getId()));
+            doc.put("attribute", toBson(hist.attribute));
+        }
+
+        @Override
+        public void visit(Visualization.Scatter scatter) {
+            doc.put("type", SCATTER);
+            doc.put("datasetId", new ObjectId(scatter.getDataset().getId()));
+            doc.put("xAxis", toBson(scatter.xAxis));
+            doc.put("yAxis", toBson(scatter.yAxis));
+        }
+
+        @Override
+        public void visit(Visualization.Series series) {
+            doc.put("type", SERIES);
+            doc.put("datasetId", new ObjectId(series.getDataset().getId()));
+            doc.put("attribute", toBson(series.attribute));
+        }
     }
 
     private static class AttributeEncoder implements Attribute.Visitor {
@@ -224,19 +261,139 @@ class MongoEngine implements Engine {
 
     @Override
     public Visualization createViz(Visualization visualization) {
-        // TODO: Implement
-        return null;
+        final MongoCollection<Document> visualizations =
+            database.getCollection(VISUALIZATION_COLLECTION);
+        final Document doc = new Document();
+        doc.put("name", visualization.getName());
+        visualization.accept(new VisualizationEncoder(doc));
+        visualizations.insertOne(doc);
+        ObjectId id = doc.get("_id",ObjectId.class);
+        return Upgrader.upgrade(id.toHexString(), visualization);
     }
 
     @Override
-    public Optional<Visualization> getVisualization(String id) {
+    public Optional<Visualization> getVisualization(String _id) {
         // TODO: Implement
-        return Optional.empty();
+        ObjectId id = new ObjectId(_id);
+        final MongoCollection<Document> visualizations =
+            database.getCollection(VISUALIZATION_COLLECTION);
+        return StreamSupport.stream(
+                visualizations.find(
+                    Filters.eq("_id", id)).spliterator(), false)
+            .map(doc -> toVisualization(_id, doc))
+            .findFirst();
     }
 
     @Override
     public Collection<Visualization> listVisualizations() {
-        // TODO: Implement
-        return Collections.emptyList();
+        final MongoCollection<Document> visualizations =
+            database.getCollection(VISUALIZATION_COLLECTION);
+        return StreamSupport.stream(visualizations.find().spliterator(), false)
+            .map(this::toVisualization)
+            .collect(Collectors.toList());
+    }
+
+    private final Visualization toVisualization(Document doc) {
+        ObjectId id = doc.get("_id", ObjectId.class);
+        return toVisualization(id.toHexString(), doc);
+    }
+
+    private final Visualization toVisualization(String id, Document doc) {
+        Dataset dataset = forId(
+                doc.get("datasetId", ObjectId.class).toString())
+            .get();
+        String type = doc.get("type",String.class);
+        switch (type) {
+        case HISTOGRAM:
+            return Upgrader.upgrade(id, toHistogram(id, dataset, doc));
+        case SCATTER:
+            return Upgrader.upgrade(id, toScatter(id, dataset, doc));
+        case SERIES:
+            return Upgrader.upgrade(id, toSeries(id, dataset, doc));
+        }
+        throw new RuntimeException("Malconfigured Visualization");
+    }
+
+    private final Visualization toHistogram(
+            String id,
+            Dataset dataset,
+            Document doc)
+    {
+        Attribute histAttr = toAttribute(
+                doc.get("attribute", Document.class));
+        final String name = doc.get("name", String.class);
+        return new Visualization.Histogram(
+                id, dataset,
+                Attribute.Countable.class.cast(histAttr))
+        {
+            @Override
+            public String getName() {
+                return name;
+            }
+            @Override
+            public Image render() {
+                return null;
+            }
+            @Override
+            public List<DataPoint> data() {
+                return Collections.emptyList();
+            }
+        };
+    }
+
+    private final Visualization toSeries(
+            String id,
+            Dataset dataset,
+            Document doc)
+    {
+        Attribute seriesAttr = toAttribute(
+                doc.get("attribute", Document.class));
+        final String name = doc.get("name", String.class);
+        return new Visualization.Series( id, dataset,
+                Attribute.Arithmetic.class.cast(seriesAttr))
+        {
+            @Override
+            public String getName() {
+                return name;
+            }
+            @Override
+            public Image render() {
+                return null;
+            }
+            @Override
+            public List<Value> data() {
+                return Collections.emptyList();
+            }
+        };
+    }
+
+    private final Visualization toScatter(
+            String id,
+            Dataset dataset,
+            Document doc)
+    {
+        final String name = doc.get("name", String.class);
+        Attribute xAxis = toAttribute(
+                doc.get("xAxis", Document.class));
+        Attribute yAxis = toAttribute(
+                doc.get("yAxis", Document.class));
+        return new Visualization.Scatter(
+                id, dataset,
+                Attribute.Arithmetic.class.cast(xAxis),
+                Attribute.Arithmetic.class.cast(yAxis))
+        {
+            @Override
+            public String getName() {
+                return name;
+            }
+            @Override
+            public Image render() {
+                return null;
+            }
+            @Override
+            public List<DataPoint> data() {
+                return Collections.emptyList();
+            }
+        };
     }
 }
