@@ -15,6 +15,6 @@ public interface Engine {
     Collection<Visualization> listVisualizations();
 
     public static Engine getInstance() {
-        return MemEngine.getInstance();
+        return MongoEngine.getInstance();
     }
 }
