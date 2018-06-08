@@ -3,7 +3,10 @@ package edu.drexel.se577.grouptwo.viz.storage;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.List;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.stream.Collectors;
 
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
@@ -13,6 +16,7 @@ import org.bson.BsonValue;
 import org.bson.BsonDocument;
 import org.bson.BsonObjectId;
 import org.bson.BsonArray;
+import org.bson.LazyBSONList;
 import org.bson.types.ObjectId;
 import org.bson.BsonInt32;
 import org.bson.BsonDouble;
@@ -100,6 +104,62 @@ class MongoEngine implements Engine {
         }
     }
 
+    private static Attribute toAttribute(Document doc) {
+        String name = doc.get("name", String.class);
+        String type = doc.get("type", String.class);
+        switch (type) {
+        case INTEGER:
+            return toIntegerAttr(name, doc);
+        case ARBITRARY:
+            return toArbitraryAttr(name, doc);
+        case FLOATING_POINT:
+            return toFloatingPointAttr(name, doc);
+        case ENUMERATED:
+            return toEnumeratedAttr(name, doc);
+        }
+        throw new RuntimeException("Unknown Attribute Type");
+    }
+
+    private static Attribute toIntegerAttr(String name, Document doc) {
+        Document bounds = doc.get("bounds", Document.class);
+        int max = bounds.get("max", Integer.class);
+        int min = bounds.get("min", Integer.class);
+        return new Attribute.Int(name, max, min);
+    }
+
+    private static Attribute toFloatingPointAttr(String name, Document doc) {
+        Document bounds = doc.get("bounds", Document.class);
+        double max = bounds.get("max", Double.class);
+        double min = bounds.get("min", Double.class);
+        return new Attribute.FloatingPoint(name, max, min);
+    }
+
+    private static Attribute toArbitraryAttr(String name, Document doc) {
+        return new Attribute.Arbitrary(name);
+    }
+
+    private static Attribute toEnumeratedAttr(String name, Document doc) {
+        @SuppressWarnings("unchecked")
+        List<String> vals = (List<String>) doc.get("values", List.class);
+        String[] values = vals.toArray(new String[0]);
+        return new Attribute.Enumerated(name, values);
+    }
+
+    private static Definition toDefinition(Document doc) {
+        String name = doc.get("name", String.class);
+        final Definition def = new Definition(name);
+        // Mostly unavoidable here.
+        @SuppressWarnings("unchecked")
+        List<Document> attributes =
+            (List<Document>) doc.get("attributes", List.class);
+        attributes.stream().forEach(aDoc -> {
+            Attribute attr = toAttribute(aDoc);
+            def.put(attr);
+        });
+        // TODO: implement
+        return def;
+    }
+
     private static BsonValue toBson(final Attribute attr) {
         BsonDocument doc = new BsonDocument();
         attr.accept(new AttributeEncoder(doc));
@@ -123,7 +183,7 @@ class MongoEngine implements Engine {
     @Override
     public Optional<Dataset> forId(String _id) {
         ObjectId id = new ObjectId(_id);
-        // TODO: Implement
+        // TODO: Implement this next
         return Optional.empty();
     }
 
@@ -131,7 +191,6 @@ class MongoEngine implements Engine {
     public Dataset create(Definition definition) {
         MongoCollection<Document> datasets =
             database.getCollection(DATASET_COLLECTION);
-        // TODO: Implement
         Document doc = new Document();
         doc.put("definition", toBson(definition));
         System.err.println(doc.toJson());
@@ -143,9 +202,16 @@ class MongoEngine implements Engine {
     }
 
     @Override
-    public Collection<Dataset> listDatasets() {
-        // TODO: Implement
-        return Collections.emptyList();
+    public Collection<? extends Dataset> listDatasets() {
+        final MongoCollection<Document> datasets =
+            database.getCollection(DATASET_COLLECTION);
+        return StreamSupport.stream(datasets.find().spliterator(), false)
+            .map(doc -> {
+                ObjectId id = doc.get("_id",ObjectId.class);
+                Definition def = toDefinition(
+                        doc.get("definition",Document.class));
+                return new MongoDataset(id, def, datasets);
+            }).collect(Collectors.toList());
     }
 
     @Override

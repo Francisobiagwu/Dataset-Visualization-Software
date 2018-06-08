@@ -32,7 +32,7 @@ final class MemEngine implements Engine {
     }
 
     @Override
-    public Collection<Dataset> listDatasets() {
+    public Collection<? extends Dataset> listDatasets() {
         return Collections.unmodifiableCollection(datasets.values());
     }
 
