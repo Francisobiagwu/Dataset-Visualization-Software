@@ -29,19 +29,19 @@
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Tables">
           <a class="nav-link" href="index.html">
             <i class="fa fa-fw fa-table"></i>
-            <span class="nav-link-text">Existing Datasets</span>
+            <span class="nav-link-text">Home</span>
           </a>
         </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
             <a class="nav-link" href="g2_Upload_a_Dataset.html">
               <i class="fa fa-fw fa-file"></i>
-              <span class="nav-link-text">Upload A Dataset</span>
+              <span class="nav-link-text">Upload a Dataset</span>
             </a>
           </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
           <a class="nav-link" href="g2_Define_a_Dataset.html">
             <i class="fa fa-fw fa-sitemap"></i>
-            <span class="nav-link-text">Define A Dataset</span>
+            <span class="nav-link-text">Define a Dataset</span>
           </a>
         </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
@@ -81,16 +81,41 @@
       <div class="row">
         <div class="col-12">
 
-          <p>A placeholder page for...</p>
+          <p>This page provides the ability to appends sample data points to an existing dataset.</p>
 
           <ol>
-            <li>Table of existing datasets (from server) within list. Columns: "Select" Button, Data Set Name</li>
-            <li>User presses "Select" next to dataset they want to append.</li>
-            <li>Dataset fetched, "Define a Dataset" UI appears given existing attributes within the selected dataset </li>
-            <li>User appends new attributes (possibly removes existing)</li>
-            <li> User clicks "Save Dataset" Button</li>
-            <li> Response (fail or success) indicated via green or red indicator</li>
+            <li>Text area : Dataset Name</li>
+            <li>Dataset sample data point: Name, Type ; depending on type UI shows one of the following:</li>
+            <ul>
+                <li>integer : 2 Textboxes (min, max)</li>
+                <li>floating : 2 Textboxes (min, max)</li>
+                <li>enumerated 1 Textbox (space or comma separated values)</li>
+                <li>arbitrary : Table of Key Value pairs (col1 name, col2 value) - time permitting</li>
+            </ul>
+            <li>Existing datasets show within a table. Table will appear without an existing dataset.
+                <ul>
+                  <li>Note: Page requires existing datasets.</li>
+                  <li>To add data using the site use one of the following pages:</li>
+                  <ul>
+                    <li>Define a Dataset OR</li>
+                    <li>Upload a Dataset to create data.</li>
+                  </ul>
+                </ul>
+            </li>
+            <li>Press "Select" next to the dataset to append with new data points.</li>
+            <li>UI decribed above appears to define a new sample one data point at a time.</li>
+            <li>User clicks "Add Data" Button
+                <ul>
+                    <li>User enters data one data point at a time.</li>
+                    <li>Data added to new sample and displayed within a table.</li>
+                    <li>Once new datas been added teh "Save Dataset" button will appear.</li>
+                  </ul>
+            </li>
+            <li>Button: "Save Dataset"</li>
+            <li>Data point response (fail or success) indicated via text message next to button "Add Data".</li>
+            <li>Dataset response (fail or success) indicated via text message next to button "Add Data".</li>
           </ol>
+
 
           <div id="append_dataset"></div>
           

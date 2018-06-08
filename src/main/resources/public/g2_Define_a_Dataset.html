@@ -29,19 +29,19 @@
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Tables">
           <a class="nav-link" href="index.html">
             <i class="fa fa-fw fa-table"></i>
-            <span class="nav-link-text">Existing Datasets</span>
+            <span class="nav-link-text">Home</span>
           </a>
         </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
             <a class="nav-link" href="g2_Upload_a_Dataset.html">
               <i class="fa fa-fw fa-file"></i>
-              <span class="nav-link-text">Upload A Dataset</span>
+              <span class="nav-link-text">Upload a Dataset</span>
             </a>
           </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
           <a class="nav-link" href="g2_Define_a_Dataset.html">
             <i class="fa fa-fw fa-sitemap"></i>
-            <span class="nav-link-text">Define A Dataset</span>
+            <span class="nav-link-text">Define a Dataset</span>
           </a>
         </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
@@ -81,20 +81,22 @@
       <div class="row">
         <div class="col-12">
 
-          <p>A placeholder page for...</p>
-
+          <p>This page provides the ability to define a new dataset and its data definition manually or by coping then modifying an existing dataset.</p>
+            
           <ol>
             <li>Text area : Dataset Name</li>
-            <li>Attribute Component: Name, Type ; depending on type UI shows one of the following:</li>
+            <li>Dataset definition attribute: Name, Type ; depending on type UI shows one of the following:</li>
             <ul>
                 <li>integer : 2 Textboxes (min, max)</li>
                 <li>floating : 2 Textboxes (min, max)</li>
                 <li>enumerated 1 Textbox (space or comma separated values)</li>
                 <li>arbitrary : Table of Key Value pairs (col1 name, col2 value) - time permitting</li>
             </ul>
-            <li>User adds additional components that stack to define remainder of dataset.</li>
+            <li>Existing datasets show within a table.</li>
+            <li>User adds additional attributes that stack to define remainder of dataset.</li>
             <li>Button: "Save Dataset"</li>
-            <li>Response (fail or success) indicated via green or red indicator</li>
+            <li>Datasets current definiton show within a table.</li>
+            <li>Response (fail or success) indicated via text message next to button "Save Dataset" button.</li>
           </ol>
         
           <div id="define_dataset"></div>

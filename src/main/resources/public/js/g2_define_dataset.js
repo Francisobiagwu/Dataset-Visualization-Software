@@ -1,7 +1,7 @@
 const define_dataset_component = new Vue({
   el: "#define_dataset",
   data: {
-    datasets: [],
+    datasets: null,
     location: null,
     selectedDataset: null,
     newAttributes: null,
@@ -110,6 +110,9 @@ const define_dataset_component = new Vue({
           return null;
         }
 
+        aLower = Number(aLower);
+        aUpper = Number(aUpper);
+
         if(aLower > aUpper){
           this.log("Lower must be lower than or equal to upper.");
           return null;
@@ -139,7 +142,7 @@ const define_dataset_component = new Vue({
       if(aType === "enumerated"){
         return {"name" : aName, "type" : aType, "values" : aValue};
       }else if(aType === "floating-point" || aType === "integer"){
-        return {"name" : aName, "type" : aType, "bounds" : {"upper" : aUpper, "lower": aLower} };
+        return {"name" : aName, "type" : aType, "bounds" : {"max" : aUpper, "min": aLower} };
       }else if(aType === "arbitrary"){
         return {"name" : aName, "type" : aType };
       }
@@ -201,15 +204,19 @@ const define_dataset_component = new Vue({
       
     },
     getData(){
-      fetch("http://localhost:4567/api/datasets")
+      fetch("/api/datasets")
       .then(response => response.json())
       .then((data) => {
-        this.datasets = data;
-      })
+        if(data && data.length > 0){
+          this.datasets = data;
+        } else {
+          this.datasets = null;
+        }
+      })     
     },
     getdataset(location, i) {
       this.location = location;
-      fetch("http://localhost:4567" + location, {
+      fetch(location, {
         method: "GET"
       })
       .then(response => response.json())
@@ -218,20 +225,29 @@ const define_dataset_component = new Vue({
       })        
     },
     postdataset(dataset) {
-      // TODO: REST endpoint does not exist yet...
+      function handleErrors(response) {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response;
+      }
       
-      // location expected to be /api/datasets/:id
-      fetch("http://localhost:4567", {
-        body: JSON.stringify(dataset),
+      fetch("/api/datasets", {
+        body: JSON.stringify(dataset.definition),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
       })
-      .then(response => response.json())
-      .then((data) => {
-        this.selectedDataset = data;
-      })
+      .then(handleErrors).then(
+        (success) => {
+          this.log(success);
+          this.getData();  
+        }
+      ).catch(
+        error => console.log(error) // Handle the error response object
+      );
+
       this.selectedDataset = null;
       this.newAttributes = null;
       this.selAttrib = null;
@@ -252,31 +268,7 @@ const define_dataset_component = new Vue({
   },
   template: ` 
   <div>
-    <div class="card mb-3">
-      <div class="card-header">
-        <i class="fa fa-table"></i>Existing Datasets</div>
-      <div class="card-body">
-        <div class="table-responsive">        
-          <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-            <thead>
-              <tr>
-                <th>Definition Name</th>
-                <th>Location</th>
-                <th>Select</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="dataset, i in datasets">
-                <td>{{dataset.name}}</td>
-                <td>{{dataset.location}}</td>
-                <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    
+      
     <div align="center">
       <div v-if="selectedDataset !== null">
         <label for="datasetName">Dataset Name</label>
@@ -326,7 +318,7 @@ const define_dataset_component = new Vue({
           </div>
         </div>
       </div>      
-      <button id="add" v-on:click="addDataSet()">Add</button>          
+      <button id="add" v-on:click="addDataSet()">Save Dataset</button>          
       <label for="add">
         <span class="error" name="error" id="error"></span>
       </label>
@@ -351,7 +343,7 @@ const define_dataset_component = new Vue({
                   {{obj.values}}
                 </td>
                 <td v-else-if="obj.type == 'floating-point' || obj.type == 'integer'">
-                  upper: {{obj.bounds.upper}}, lower: {{obj.bounds.lower}}
+                  upper: {{obj.bounds.max}}, lower: {{obj.bounds.min}}
                 </td>
                 <td v-else></td>
               </td>
@@ -398,21 +390,34 @@ const define_dataset_component = new Vue({
         </div>
       </div>
     </div>
+
+    
+    <div v-if="datasets !== null" class="card mb-3">
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="fa fa-table"></i>Existing Datasets</div>
+        <div class="card-body">
+          <div class="table-responsive">        
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Definition Name</th>
+                  <th>Location</th>
+                  <th>Select</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="dataset, i in datasets">
+                  <td>{{dataset.name}}</td>
+                  <td>{{dataset.location}}</td>
+                  <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   `,
 });
-
-
-
-{/* <li v-for="dataset, i in datasets">
-<div v-if="editdataset === dataset.name">
-<input v-on:keyup.13="updatedataset(dataset)" v-model="dataset.location" />
-<button v-on:click="updatedataset(dataset)">save</button>
-</div>
-<div v-else>
-<button v-on:click="editdataset = dataset.name">edit</button>
-<button v-on:click="deletedataset(dataset.location, i)">X</button>
-<button v-on:click="getdataset(dataset.location, i)">Get Data</button>
-{{dataset.location}}
-</div>
-</li> */}
