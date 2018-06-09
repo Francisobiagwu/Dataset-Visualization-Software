@@ -29,19 +29,19 @@
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Tables">
           <a class="nav-link" href="index.html">
             <i class="fa fa-fw fa-table"></i>
-            <span class="nav-link-text">Existing Datasets</span>
+            <span class="nav-link-text">Home</span>
           </a>
         </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
             <a class="nav-link" href="g2_Upload_a_Dataset.html">
               <i class="fa fa-fw fa-file"></i>
-              <span class="nav-link-text">Upload A Dataset</span>
+              <span class="nav-link-text">Upload a Dataset</span>
             </a>
           </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
           <a class="nav-link" href="g2_Define_a_Dataset.html">
             <i class="fa fa-fw fa-sitemap"></i>
-            <span class="nav-link-text">Define A Dataset</span>
+            <span class="nav-link-text">Define a Dataset</span>
           </a>
         </li>  
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
@@ -80,19 +80,20 @@
       </ol>
       <div class="row">
         <div class="col-12">
-
-          <p>A placeholder page for...</p>
-
+            
+          <p>This page provides the ability to define a new dataset by uploading an XLS, XLSX or CSV file.</p>
+            
           <ol>
             <li>Text area : Dataset Name</li>
             <li>Area on the screen where user can drag a file or a button to select a file (shows file dialog):</li>
             <ul>
-                <li>only permits .XLSx .MAT or .CSV</li>
+                <li>only permits .XLS, .XLSX or .CSV</li>
+                <li>file examples provided within the Upload_Test_Files folder provided within the solution folder.</li>
                 <li>only one file at a time</li>
             </ul>
-            <li>File are added to a table. Each row has a Delete and Upload Buttons. Columns:  File Name, File Type</li>
+            <li>Dataset created by the files added to a table.</li>
             <li>User clicks "Upload" (file uploaded)</li>
-            <li>Response (fail or success) indicated via green or red indicator</li>
+            <li>Response (fail or success) indicated via text message next to button "Upload" button.</li>
           </ol>
         
           <div id="upload_dataset"></div>
