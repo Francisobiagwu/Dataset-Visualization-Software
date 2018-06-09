@@ -54,11 +54,14 @@ public abstract class Routing {
         .create();
 
     abstract Collection<? extends Dataset> listDatasets();
+
     abstract Optional<? extends Dataset> getDataset(String id);
     abstract Optional<? extends Visualization> getVisualization(String id);
     abstract URI storeVisualization(Visualization def);
     abstract URI storeDataset(Definition def);
+
     abstract Dataset createDataset(Definition def);
+
     abstract Optional<? extends FileInputHandler> getFileHandler(String contentType);
     abstract Collection<? extends Visualization> listVisualizations();
 
@@ -76,9 +79,7 @@ public abstract class Routing {
     }
 
     final String selectDataset(String id) {
-        return getDataset(id)
-            .map(Routing::serializeDataset)
-            .orElse(null);
+        return getDataset(id).map(Routing::serializeDataset).orElse(null);
     };
 
     final static String serializeDataset(Dataset dataset) {
@@ -90,27 +91,24 @@ public abstract class Routing {
 
     final String appendSample(String id, String body) {
         final Sample sample = gson.fromJson(body, Sample.class);
-        return getDataset(id)
-            .map(dataset -> {
-                dataset.addSample(sample);
-                return serializeDataset(dataset);
-            }).orElse(null);
+        return getDataset(id).map(dataset -> {
+            dataset.addSample(sample);
+            return serializeDataset(dataset);
+        }).orElse(null);
     }
 
     final Visualization selectVisualization(String id) {
-        return getVisualization(id)
-            .orElseThrow(() -> new RuntimeException("No such Visualization"));
+        return getVisualization(id).orElseThrow(() -> new RuntimeException("No such Visualization"));
     }
 
     final String allVisualizations() {
-        Ref[] refs = listVisualizations().stream()
-            .map(vis -> {
-                Ref ref = new Ref();
-                URI id = URI.create(vis.getId());
-                ref.name = vis.getName();
-                ref.location = VISUALIZATION_PATH.resolve(id);
-                return ref;
-            }).toArray(Ref[]::new);
+        Ref[] refs = listVisualizations().stream().map(vis -> {
+            Ref ref = new Ref();
+            URI id = URI.create(vis.getId());
+            ref.name = vis.getName();
+            ref.location = VISUALIZATION_PATH.resolve(id);
+            return ref;
+        }).toArray(Ref[]::new);
         return gson.toJson(refs);
     }
 
@@ -125,20 +123,17 @@ public abstract class Routing {
     }
 
     final URI processFile(String contentType, String name, byte[] body) {
-        return getFileHandler(contentType)
-            .map(handler -> {
-                FileContents contents = handler.parseFile(name, body)
+        return getFileHandler(contentType).map(handler -> {
+            FileContents contents = handler.parseFile(name, body)
                     .orElseThrow(() -> new RuntimeException("Parsing Failed"));
-                final Dataset created =
-                    createDataset(contents.getDefinition());
-                contents.getSamples().stream()
-                    .forEach(sample -> {
-                        created.addSample(sample);
-                    });
+            final Dataset created = createDataset(contents.getDefinition());
+            contents.getSamples().stream().forEach(sample -> {
+                created.addSample(sample);
+            });
 
-                URI id = URI.create(created.getId());
-                return DATASETS_PATH.resolve(id);
-            }).orElseThrow(() -> new RuntimeException("Bad File Type"));
+            URI id = URI.create(created.getId());
+            return DATASETS_PATH.resolve(id);
+        }).orElseThrow(() -> new RuntimeException("Bad File Type"));
     }
 
     static class DatasetRep {
@@ -270,9 +265,11 @@ public abstract class Routing {
     private static final class AttributeGsonAdapter implements JsonSerializer<Attribute>, JsonDeserializer<Attribute> {
         private static final class Visitor implements Attribute.Visitor {
             private final JsonObject obj;
+
             Visitor(JsonObject obj) {
                 this.obj = obj;
             }
+
             @Override
             public void visit(Attribute.Mapping mapping) {
                 throw new JsonIOException("Serializing mapping attributes not currently supported");
@@ -281,7 +278,7 @@ public abstract class Routing {
             @Override
             public void visit(Attribute.Int attr) {
                 JsonObject bounds = new JsonObject();
-                obj.addProperty("type",INTEGER);
+                obj.addProperty("type", INTEGER);
                 bounds.addProperty("max", Integer.valueOf(attr.max));
                 bounds.addProperty("min", Integer.valueOf(attr.min));
                 obj.add("bounds", bounds);
@@ -295,25 +292,24 @@ public abstract class Routing {
                 bounds.addProperty("min", Double.valueOf(attr.min));
                 obj.add("bounds", bounds);
             }
+
             @Override
             public void visit(Attribute.Enumerated attr) {
                 JsonArray choices = new JsonArray();
                 obj.addProperty("type", ENUMERATED);
-                attr.choices.stream()
-                    .forEach(choice -> choices.add(choice));
+                attr.choices.stream().forEach(choice -> choices.add(choice));
                 obj.add("values", choices);
             }
+
             @Override
             public void visit(Attribute.Arbitrary attr) {
                 obj.addProperty("type", ARBITRARY);
             }
         }
+
         @Override
-        public JsonElement serialize(
-                final Attribute attribute,
-                java.lang.reflect.Type typeOfT,
-                final JsonSerializationContext context)
-        {
+        public JsonElement serialize(final Attribute attribute, java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context) {
             final JsonObject obj = new JsonObject();
             obj.addProperty("name", attribute.name());
             attribute.accept(new Visitor(obj));
@@ -321,21 +317,18 @@ public abstract class Routing {
         }
 
         @Override
-        public Attribute deserialize(
-                JsonElement elem,
-                java.lang.reflect.Type typeOfT,
-                final JsonDeserializationContext context)
-        {
+        public Attribute deserialize(JsonElement elem, java.lang.reflect.Type typeOfT,
+                final JsonDeserializationContext context) {
             final JsonObject obj = elem.getAsJsonObject();
             final String name = obj.getAsJsonPrimitive("name").getAsString();
             final String type = obj.getAsJsonPrimitive("type").getAsString();
             switch (type) {
             case INTEGER:
-                return emitInteger(name,obj);
+                return emitInteger(name, obj);
             case FLOAT:
-                return emitFloat(name,obj);
+                return emitFloat(name, obj);
             case ENUMERATED:
-                return emitEnum(name,obj);
+                return emitEnum(name, obj);
             case ARBITRARY:
                 return emitArb(name, obj);
             }
@@ -343,20 +336,14 @@ public abstract class Routing {
             throw new JsonParseException("Unknown Attribute Type");
         }
 
-        private static Attribute.Int emitInteger(
-                String name,
-                JsonObject obj)
-        {
+        private static Attribute.Int emitInteger(String name, JsonObject obj) {
             JsonObject bounds = obj.getAsJsonObject("bounds");
             int max = bounds.getAsJsonPrimitive("max").getAsInt();
             int min = bounds.getAsJsonPrimitive("min").getAsInt();
-            return new Attribute.Int(name,max,min);
+            return new Attribute.Int(name, max, min);
         }
 
-        private static Attribute.FloatingPoint emitFloat(
-                String name,
-                JsonObject obj)
-        {
+        private static Attribute.FloatingPoint emitFloat(String name, JsonObject obj) {
             JsonObject bounds = obj.getAsJsonObject("bounds");
 
             double max = bounds.getAsJsonPrimitive("max").getAsDouble();
@@ -365,10 +352,7 @@ public abstract class Routing {
             return new Attribute.FloatingPoint(name, max, min);
         }
 
-        private static Attribute.Enumerated emitEnum(
-                String name,
-                JsonObject obj)
-        {
+        private static Attribute.Enumerated emitEnum(String name, JsonObject obj) {
             final Set<String> valueSet = new HashSet<>();
             JsonArray values = obj.getAsJsonArray("values");
             values.iterator().forEachRemaining(elem -> {
@@ -377,44 +361,35 @@ public abstract class Routing {
             return new Attribute.Enumerated(name, valueSet);
         }
 
-        private static Attribute.Arbitrary emitArb(
-                String name,
-                JsonObject obj)
-        {
+        private static Attribute.Arbitrary emitArb(String name, JsonObject obj) {
             return new Attribute.Arbitrary(name);
         }
     }
 
-    private static final class DefinitionGsonAdapter implements JsonSerializer<Definition>, JsonDeserializer<Definition> {
+    private static final class DefinitionGsonAdapter
+            implements JsonSerializer<Definition>, JsonDeserializer<Definition> {
         @Override
-        public JsonElement serialize(
-                final Definition definition,
-                java.lang.reflect.Type typeOfT,
-                final JsonSerializationContext context)
-        {
+        public JsonElement serialize(final Definition definition, java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context) {
             final JsonObject obj = new JsonObject();
             final JsonArray attributes = new JsonArray();
             obj.addProperty("name", definition.name);
-            definition.getKeys().stream()
-                .forEach(name -> {
-                    definition.get(name).ifPresent(attr -> {
-                        attributes.add(context.serialize(attr, Attribute.class));
-                    });
+            definition.getKeys().stream().forEach(name -> {
+                definition.get(name).ifPresent(attr -> {
+                    attributes.add(context.serialize(attr, Attribute.class));
                 });
+            });
             obj.add("attributes", attributes);
             return obj;
         }
+
         @Override
-        public Definition deserialize(
-                JsonElement json,
-                java.lang.reflect.Type typeOfT,
-                JsonDeserializationContext context)
-        {
-            if (!json.isJsonObject()) throw new JsonParseException(
-                    "Sample not formatted correctly");
+        public Definition deserialize(JsonElement json, java.lang.reflect.Type typeOfT,
+                JsonDeserializationContext context) {
+            if (!json.isJsonObject())
+                throw new JsonParseException("Sample not formatted correctly");
             final JsonObject asObject = json.getAsJsonObject();
-            final Definition definition = new Definition(
-                    asObject.getAsJsonPrimitive("name").getAsString());
+            final Definition definition = new Definition(asObject.getAsJsonPrimitive("name").getAsString());
             JsonArray attributes = asObject.getAsJsonArray("attributes");
             attributes.iterator().forEachRemaining(elem -> {
                 definition.put(context.deserialize(elem, Attribute.class));
@@ -425,37 +400,27 @@ public abstract class Routing {
 
     private static final class SampleGsonAdapter implements JsonSerializer<Sample>, JsonDeserializer<Sample> {
         @Override
-        public JsonElement serialize(
-                final Sample sample,
-                java.lang.reflect.Type typeOfT,
-                final JsonSerializationContext context)
-        {
+        public JsonElement serialize(final Sample sample, java.lang.reflect.Type typeOfT,
+                final JsonSerializationContext context) {
             final JsonObject obj = new JsonObject();
-            sample.getKeys().stream()
-                .forEach(name -> {
-                    sample.get(name).ifPresent(value -> {
-                        obj.add(name,context.serialize(value, Value.class));
-                    });
+            sample.getKeys().stream().forEach(name -> {
+                sample.get(name).ifPresent(value -> {
+                    obj.add(name, context.serialize(value, Value.class));
                 });
+            });
             return obj;
         }
 
         @Override
-        public Sample deserialize(
-                JsonElement json,
-                java.lang.reflect.Type typeOfT,
-                JsonDeserializationContext context)
-        {
+        public Sample deserialize(JsonElement json, java.lang.reflect.Type typeOfT,
+                JsonDeserializationContext context) {
             final Sample sample = new Sample();
-            if (!json.isJsonObject()) throw new JsonParseException(
-                    "Sample not formatted correctly");
+            if (!json.isJsonObject())
+                throw new JsonParseException("Sample not formatted correctly");
             final JsonObject asObject = json.getAsJsonObject();
-            asObject.keySet().stream()
-                .forEach(key -> {
-                    sample.put(key, context.deserialize(
-                                asObject.get(key),
-                                Value.class));
-                });
+            asObject.keySet().stream().forEach(key -> {
+                sample.put(key, context.deserialize(asObject.get(key), Value.class));
+            });
             return sample;
         }
     }
@@ -504,43 +469,31 @@ public abstract class Routing {
         }
 
         @Override
-        public JsonElement serialize(
-                Value value,
-                java.lang.reflect.Type typeOfT,
-                JsonSerializationContext context)
-        {
+        public JsonElement serialize(Value value, java.lang.reflect.Type typeOfT, JsonSerializationContext context) {
             ValueSerializer ser = new ValueSerializer();
             value.accept(ser);
             return ser.elem.orElse(null);
         }
 
         @Override
-        public Value deserialize(
-                JsonElement json,
-                java.lang.reflect.Type typeOfT,
-                JsonDeserializationContext context)
-        {
-            if (!json.isJsonObject()) throw new JsonParseException(
-                    "Sample value formatted incorrectly");
+        public Value deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) {
+            if (!json.isJsonObject())
+                throw new JsonParseException("Sample value formatted incorrectly");
             JsonObject asObject = json.getAsJsonObject();
-            if (!asObject.has("type")) throw new JsonParseException(
-                    "Missing type attribute");
+            if (!asObject.has("type"))
+                throw new JsonParseException("Missing type attribute");
 
             String type = asObject.getAsJsonPrimitive("type").getAsString();
 
             switch (type) {
             case INTEGER:
-                return new Value.Int(asObject.getAsJsonPrimitive("value")
-                        .getAsInt());
+                return new Value.Int(asObject.getAsJsonPrimitive("value").getAsInt());
             case FLOAT:
-                return new Value.FloatingPoint(
-                        asObject.getAsJsonPrimitive("value").getAsDouble());
+                return new Value.FloatingPoint(asObject.getAsJsonPrimitive("value").getAsDouble());
             case ENUMERATED:
-                return new Value.Enumerated(
-                        asObject.getAsJsonPrimitive("value").getAsString());
+                return new Value.Enumerated(asObject.getAsJsonPrimitive("value").getAsString());
             case ARBITRARY:
-                return new Value.Arbitrary(
-                        asObject.getAsJsonPrimitive("value").getAsString());
+                return new Value.Arbitrary(asObject.getAsJsonPrimitive("value").getAsString());
             default:
                 throw new JsonParseException("Unknown type attribute");
             }
@@ -565,24 +518,18 @@ public abstract class Routing {
     };
 
     private static Route postDefinition = (request, reply) -> {
-        Optional<String> contentType = Optional
-            .ofNullable(request.headers("Content-Type"));
-        boolean isJson = contentType
-            .map(content -> content.startsWith("application/json"))
-            .orElse(false);
+        Optional<String> contentType = Optional.ofNullable(request.headers("Content-Type"));
+        boolean isJson = contentType.map(content -> content.startsWith("application/json")).orElse(false);
         if (isJson) {
             URI location = getInstance().instanciateDefinition(request.body());
             reply.header("Location", location.toString());
             reply.status(201);
             return "";
-        } else if (contentType.isPresent()){
+        } else if (contentType.isPresent()) {
             String name = Optional.ofNullable(request.queryParams("name"))
-                .orElseThrow(() -> new RuntimeException("Must specify dataset name for file input"));
+                    .orElseThrow(() -> new RuntimeException("Must specify dataset name for file input"));
 
-            URI location = getInstance().processFile(
-                    contentType.get(),
-                    name,
-                    request.bodyAsBytes());
+            URI location = getInstance().processFile(contentType.get(), name, request.bodyAsBytes());
             reply.header("Location", location.toString());
             reply.status(201);
             return "";

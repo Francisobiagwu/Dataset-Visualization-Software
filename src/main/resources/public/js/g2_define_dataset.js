@@ -268,34 +268,7 @@ const define_dataset_component = new Vue({
   },
   template: ` 
   <div>
-  
-    <div v-if="datasets !== null" class="card mb-3">
-      <div class="card mb-3">
-        <div class="card-header">
-          <i class="fa fa-table"></i>Existing Datasets</div>
-        <div class="card-body">
-          <div class="table-responsive">        
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-                <tr>
-                  <th>Definition Name</th>
-                  <th>Location</th>
-                  <th>Select</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="dataset, i in datasets">
-                  <td>{{dataset.name}}</td>
-                  <td>{{dataset.location}}</td>
-                  <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-    
+      
     <div align="center">
       <div v-if="selectedDataset !== null">
         <label for="datasetName">Dataset Name</label>
@@ -345,7 +318,7 @@ const define_dataset_component = new Vue({
           </div>
         </div>
       </div>      
-      <button id="add" v-on:click="addDataSet()">Add</button>          
+      <button id="add" v-on:click="addDataSet()">Save Dataset</button>          
       <label for="add">
         <span class="error" name="error" id="error"></span>
       </label>
@@ -417,21 +390,34 @@ const define_dataset_component = new Vue({
         </div>
       </div>
     </div>
+
+    
+    <div v-if="datasets !== null" class="card mb-3">
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="fa fa-table"></i>Existing Datasets</div>
+        <div class="card-body">
+          <div class="table-responsive">        
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Definition Name</th>
+                  <th>Location</th>
+                  <th>Select</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="dataset, i in datasets">
+                  <td>{{dataset.name}}</td>
+                  <td>{{dataset.location}}</td>
+                  <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   `,
 });
-
-
-
-{/* <li v-for="dataset, i in datasets">
-<div v-if="editdataset === dataset.name">
-<input v-on:keyup.13="updatedataset(dataset)" v-model="dataset.location" />
-<button v-on:click="updatedataset(dataset)">save</button>
-</div>
-<div v-else>
-<button v-on:click="editdataset = dataset.name">edit</button>
-<button v-on:click="deletedataset(dataset.location, i)">X</button>
-<button v-on:click="getdataset(dataset.location, i)">Get Data</button>
-{{dataset.location}}
-</div>
-</li> */}

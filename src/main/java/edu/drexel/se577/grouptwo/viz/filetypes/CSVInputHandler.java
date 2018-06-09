@@ -32,7 +32,7 @@ import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
 
 class CSVInputHandler implements FileInputHandler {
 
-    static String EXT_CSV = "application/csv";
+    public static String EXT_CSV = "application/csv";
 
     @Override
     public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {

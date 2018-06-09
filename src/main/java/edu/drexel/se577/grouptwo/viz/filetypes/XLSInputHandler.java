@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -33,8 +32,8 @@ import edu.drexel.se577.grouptwo.viz.filetypes.XLSFileContents;
 
 class XLSInputHandler implements FileInputHandler {
 
-    static String EXT_XLS = "application/xls";
-    static String EXT_XLSX = "application/xlsx";
+    public static String EXT_XLS = "application/xls";
+    public static String EXT_XLSX = "application/xlsx";
     
     Attribute.Int attributeInt;
     Attribute.FloatingPoint attributeFloatingPoint;

@@ -187,7 +187,7 @@ class DemoRouting extends Routing {
             return Optional.of(new Series());
         case "histogram":
             return Optional.of(new Histogram());
-        case "scatterplot":
+        case "scatter":
             return Optional.of(new Scatter());
         }
         return Optional.empty();
