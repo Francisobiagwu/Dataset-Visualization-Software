@@ -8,6 +8,7 @@ import java.util.stream.StreamSupport;
 import java.util.stream.Collectors;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
+import edu.drexel.se577.grouptwo.viz.dataset.SampleValidator;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
 
 import com.mongodb.client.model.Filters;
@@ -67,6 +68,10 @@ final class MongoDataset implements Dataset {
 
     @Override
     public void addSample(Sample sample) {
+        SampleValidator validator = new SampleValidator(definition);
+        if (!validator.check(sample)) {
+            throw new RuntimeException("Invalid sample");
+        }
         datasets.updateOne(
                 Filters.eq("_id", id),
                 Updates.push("samples",toBson(sample)));

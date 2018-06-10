@@ -57,10 +57,17 @@ Vue.component("dataset-sample-entry", {
     template: `
     <td>
       <div v-if="attribute.type === 'integer'">
-        <input v-model.number="sample[attribute.name]"></input>
+        <input
+            type="number"
+            v-bind="{ max: attribute.bounds.max, min: attribute.bounds.min }"
+            v-model.number="sample[attribute.name]"></input>
       </div>
       <div v-else-if="attribute.type === 'floating-point'">
-        <input v-model.number="sample[attribute.name]"></input>
+        <input
+            type="number"
+            step="0.001"
+            v-bind="{ max: attribute.bounds.max, min: attribute.bounds.min }"
+            v-model.number="sample[attribute.name]"></input>
       </div>
       <div v-else-if="attribute.type === 'enumerated'">
         <select v-model="sample[attribute.name]"></input>
