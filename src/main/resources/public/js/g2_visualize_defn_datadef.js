@@ -6,7 +6,8 @@ const visualize_Defn_DataDefn_component = new Vue({
     selectedDataset: null,
     newAttributes: null,
     selAttrib: null,
-    attrib_types: [ "enumerated", "floating-point", "arbitrary", "integer"]
+    attrib_types: [ "enumerated", "floating-point", "arbitrary", "integer"],
+    chart_types: [ "histogram", "scatter", "series"]
   },
   methods: {
     log(status){
@@ -150,7 +151,7 @@ const visualize_Defn_DataDefn_component = new Vue({
       return null;        
     },
     attribChanged(){
-      var e = document.getElementById("attribType");
+      var e = document.getElementById("attribbType");
       //var value = e.options[e.selectedIndex].value;
       var cboAttrib = e.options[e.selectedIndex].text;
       
@@ -295,59 +296,66 @@ const visualize_Defn_DataDefn_component = new Vue({
     </div>
   </div>
       
+  
+  <div v-if="selectedDataset !== null" class="card mb-3">
     <div align="center">
       <div v-if="selectedDataset !== null">
         <label for="datasetName">Dataset Name</label>
         <input v-model="selectedDataset.definition.name" id="datasetName" name="datasetName" type="text">
       </div>
       <div v-else>
-        <label for="datasetName">Dataset Name</label>
+        <label for="datasetName">Visualization Name</label>
         <input  id="datasetName" name="datasetName" type="text">
-      </div>
-      <div>
-        <label for="attribName">New Attribute Name</label>
-        <input id="attribName" name="attribName" type="text">
       </div>
       <div>
         <label for="attribType">New Attribute Type</label>
         <select id="attribType" v-on:change="attribChanged()">
-          <template v-for="attrib, i in attrib_types">
+          <template v-for="attrib, i in chart_types">
             <option>{{attrib}}</option>
           </template>
         </select>
       </div>
       <div v-if="selAttrib !== null"> 
         <input id="attribType" name="attribType" type="hidden" v-model="selAttrib">
-        <div v-if="selAttrib === 'floating-point'">
-          <!-- name(string) type(string) bounds(obj : lower : value, upper : value)  value(string)-->
-          <label for="attribUpper">Upper Bounds:</label>
-          <input id="attribUpper" name="attribUpper"  type="text">
-          <label for="attribLower">Lower Bounds:</label>
-          <input id="attribLower" name="attribLower"  type="text"> 
+        <div v-if="selAttrib === 'scatter'">
+          <!-- two attributes from the dataset which are of the following types: {floating-point, integer} -->
+          <label for="attribOne">Choose Attribute:</label>
+          <select id="attribOne">  
+            <template v-for="defn, i in selectedDataset.definition.attributes">
+              <option>{{defn.name}}</option>
+            </template>
+          </select>
+          <label for="attribTwo">Choose Attribute:</label>
+          <select id="attribTwo">   
+            <template v-for="defn, i in selectedDataset.definition.attributes">
+              <option>{{defn.name}}</option>
+            </template>
+          </select>
         </div>
-        <div v-else-if="selAttrib === 'arbitrary'">    
-          <!-- name(string) type(string) -->   
-          <!-- no controls nessesary -->
+        <div v-else-if="selAttrib === 'histogram'">    
+          <!-- one attribute from the dataset which is one of the following types: {integer, enumerated, arbitrary} -->
+          <label for="attribOne">Choose Attribute:</label>
+          <select id="attribOne">  
+            <template v-for="defn, i in selectedDataset.definition.attributes">
+              <option>{{defn.name}}</option>
+            </template>
+          </select>
         </div>
-        <div v-else-if="selAttrib === 'integer'">
-          <!-- name(string) type(string) bounds(obj : lower : value, upper : value) -->
-          <label for="attribUpper">Upper Bounds:</label>
-          <input id="attribUpper" name="attribUpper"  type="text">
-          <label for="attribLower">Lower Bounds:</label>
-          <input id="attribLower" name="attribLower"  type="text">  
-        </div>
-        <div v-else>
-          <!-- name(string) type(string) values(array) value(selected option) -->
-          <div>
-            <label for="attribValue">Accepted Values(comma seperated):</label>
-            <input id="attribValue" name="attribValue"  type="text">
-          </div>
+        <div v-else-if="selAttrib === 'series'">
+          <!-- one attribute from the dataset which is of one of the following types: {integer, floating-point} -->
+          <label for="attribOne">Choose Attribute:</label>
+          <select id="attribOne"> 
+            <template v-for="defn, i in selectedDataset.definition.attributes">
+              <option>{{defn.name}}</option>
+            </template>
+          </select>
         </div>
       </div>      
       <button id="add" v-on:click="addDataSet()">Save Dataset</button>          
       <label for="add">
         <span class="error" name="error" id="error"></span>
       </label>
+    </div>
     </div>
 
     <div v-if="newAttributes !== null" class="card mb-3">
