@@ -5,6 +5,7 @@ const visualize_dataset_component = new Vue({
       datasets: [],
       selectedDataset: null,
       visData: null,
+      imageUrl: null
     },
     methods: {
       getAllVisData(location, i, type) {
@@ -130,6 +131,17 @@ const visualize_dataset_component = new Vue({
         .then((data) => {
           this.displayData(data);
         })
+
+        fetch(location, {
+          method: "GET"
+        })
+        .then((data) => {
+          this.imageUrl = null;
+          if(data) {          
+            this.imageUrl = data.url;
+          }
+        })
+
       }
     },
     mounted() {
@@ -170,7 +182,8 @@ const visualize_dataset_component = new Vue({
       <div class="card mb-3">
         <div class="card-header"><i class="fa fa-area-chart"></i>Visualization</div>
         <div class="card-body">
-          <div id="chartDiv"></div>        
+          <div id="chartDiv"></div>
+          <div id="chartGenDiv"><img v-bind:src="imageUrl"></div>
         </div>
       </div>
 

@@ -80,39 +80,32 @@
       <!-- Breadcrumbs-->
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
-          <a href="#">Dashboard</a>
+          <a href="index.html">Dashboard</a>
         </li>
-        <li class="breadcrumb-item active">Home</li>
+        <li class="breadcrumb-item active">Define Dataset Visualization</li>
       </ol>
+      <div class="row">
+        <div class="col-12">
 
-      <h2>Welcome to Group #2 SE577 Group Project</h2>
-      <br>
-      <h5>HW2-Part3 : CS-577 Project Implementation<br><br>
-      Group 2 Members: Akshay Jayakumar, Francis Obiagwu, Kari Fallos, Keith Aubin, Justin Buckley, Sneha Bharath</h5>
-      <br>
-      
-      <p><b>Site Map:</b> Use the navigation bar or button create and modify datasets:</p>
-      <ul>
-      <li>Upload a Dataset</li>
-      <li>Define a Dataset</li>
-      <li>Append to an Existing Dataset</li>
-      <li>Visualize a Dataset</li>
-      </ul>
-        <p>Table below shows existing datasets (from server).</p>
-        <ul>
-          <li><ul>
-              <li>This table will be empty when datasets do not exist.</li>
-              <li>To add data using the site use one of the following pages:</li>
-              <ul>
-                <li>Define a Dataset OR</li>
-                <li>Upload a Dataset to create data.</li>
-              </ul>
-          </ul>
-        </li>
-      </ul>
+          <p>This page provides the ability to define a new data visualization from an existing dataset.</p>
+            
+        <ol>
+          <li>Table of existing Datasets, click link to choose.</li><!-- get("", Routing.getDefinitions); -->
+          <li>After a dataset is chosen, "Chart Type" UI appears:</li><ul>
+          <li>textbox : "Name Visualization"</li>
+          <li>Combobox with choices {scatterplot, series, histogram}, choice shows appropriate number of attributes:
+          <ul>
+            <li>for histogram it is one attribute from the dataset which is one of the following types: {integer, enumerated, arbitrary}</li>
+            <li>for series it is one attribute from the dataset which is of one of the following types: {integer, floating-point}</li>
+            <li>or scatter it is two attributes from the dataset which are of the following types: {floating-point, integer}</li>
+          </ul></li>
+          <li>Click "Submit Visualization Dataset". Existing Datasets table updates.</li> <!-- post("", Routing.postVisualization) -->
+          </ol>
+        
+          <div id="visualize_Defn_DataDefn"></div>
 
-      <div id="existing_datasets"></div>
-
+        </div>
+      </div>
     </div>
     <!-- /.container-fluid-->
     <!-- /.content-wrapper-->
@@ -146,18 +139,13 @@
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-    <!-- Page level plugin JavaScript-->
-    <script src="vendor/chart.js/Chart.min.js"></script>
-    <script src="vendor/plotly.js/plotly-latest.min.js"></script>    
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin.min.js"></script>
-    <!-- Custom scripts for this page-->
-    <script src="js/sb-admin-charts.min.js"></script>
 
 
     <script src="https://unpkg.com/vue"></script>
     <!-- <script src="vendor/vue.js/vue.min.js"></script>    -->
-    <script src="js/g2_existing_datasets.js"></script>    
+    <script src="js/g2_visualize_defn_datadef.js"></script> 
   </div>
 </body>
 
