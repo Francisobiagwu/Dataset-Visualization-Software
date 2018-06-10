@@ -5,8 +5,12 @@ const visualize_dataset_component = new Vue({
       datasets: [],
       selectedDataset: null,
       visData: null,
+      imageUrl: null
     },
     methods: {
+      getAllVisData(location, i, type) {
+
+      },
       displayData(data){
         this.visData = data;
           
@@ -115,10 +119,38 @@ const visualize_dataset_component = new Vue({
         .then((data) => {
           this.displayData(data);
         })
+      },
+      getvisdata(location, i) {
+        fetch(location, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+        })
+        .then(response => response.json())
+        .then((data) => {
+          this.displayData(data);
+        })
+
+        fetch(location, {
+          method: "GET"
+        })
+        .then((data) => {
+          this.imageUrl = null;
+          if(data) {          
+            this.imageUrl = data.url;
+          }
+        })
+
       }
     },
     mounted() {
-      fetch("/api/datasets")
+        fetch("/api/visualizations", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+        })
         .then(response => response.json())
         .then((data) => {
           this.datasets = data;
@@ -134,18 +166,12 @@ const visualize_dataset_component = new Vue({
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                  <th>Definition Name</th>
-                  <th>Position</th>
-                  <th>Select</th>
+                  <th>Available Visualizations</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="dataset, i in datasets">
-                  <td>{{dataset.name}}</td>
-                  <td>{{dataset.location}}</td>
-                  <button v-on:click="getvisdata(dataset.location, i, 'series')">Series</button>
-                  <button v-on:click="getvisdata(dataset.location, i, 'scatter')">Scatter</button>
-                  <button v-on:click="getvisdata(dataset.location, i, 'histogram')">Histogram</button></td>
+                  <button class="btn btn-link" v-on:click="getvisdata(dataset.location, i, 'series')">{{dataset.name}}</button>
                 </tr>
               </tbody>
             </table>
@@ -156,7 +182,8 @@ const visualize_dataset_component = new Vue({
       <div class="card mb-3">
         <div class="card-header"><i class="fa fa-area-chart"></i>Visualization</div>
         <div class="card-body">
-          <div id="chartDiv"></div>        
+          <div id="chartDiv"></div>
+          <div id="chartGenDiv"><img v-bind:src="imageUrl"></div>
         </div>
       </div>
 

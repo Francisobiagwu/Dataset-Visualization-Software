@@ -573,8 +573,8 @@ public abstract class Routing {
     private static Routing instance = null;
 
     static Routing getInstance() {
-        //instance = Optional.ofNullable(instance).orElseGet(DemoRouting::new);
-        instance = Optional.ofNullable(instance).orElseGet(RealRouting::new);
+       instance = Optional.ofNullable(instance).orElseGet(DemoRouting::new);
+         //instance = Optional.ofNullable(instance).orElseGet(RealRouting::new);
         return instance;
     }
 
