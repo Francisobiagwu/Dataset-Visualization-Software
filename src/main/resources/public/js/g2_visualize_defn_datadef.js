@@ -2,11 +2,13 @@ const visualize_Defn_DataDefn_component = new Vue({
   el: "#visualize_Defn_DataDefn",
   data: {
     datasets: null,
+    visDatasets: null,
     location: null,
     selectedDataset: null,
-    newAttributes: null,
-    selAttrib: null,
-    attrib_types: [ "enumerated", "floating-point", "arbitrary", "integer"],
+    selChartType: "",
+    visName: "",
+    selAttribTwo: null,
+    selAttribOne: null,
     chart_types: [ "histogram", "scatter", "series"]
   },
   methods: {
@@ -19,171 +21,59 @@ const visualize_Defn_DataDefn_component = new Vue({
         error.innerText = status;
     },
     createSampleObject(){
-      var aLower = null;
-      var aUpper = null;
-      var aType = this.selAttrib;
-      var aDatasetName = document.getElementById("datasetName").value;
-      var aName = document.getElementById("attribName").value;
             
-      if(!aDatasetName){
+      if(!this.visName){
         this.log("Please provide a dataset name for the sample attribute.");
         return null;
       }
 
       var bailBadDatasetName = false;
-      if(this.datasets){
-        this.datasets.forEach(function(t) {
-          if(t.name === aDatasetName){
+      if(this.visDatasets){
+        this.visDatasets.forEach(function(t) {
+          if(t.name === this.visName){
             bailBadDatasetName = true;
           }
         }); 
       }
 
       if(bailBadDatasetName){        
-        this.log("Please provide a dataset name for the sample attribute.");
+        this.log("Please provide a unique visualization name. This one already exists.");
+        return;
+      }
+      
+      if(!this.selAttribOne){
+        this.log("Please choose the first attribute.");
         return;
       }
 
-      if(!this.selectedDataset){
-        // create dataset;
-        this.selectedDataset = {
-           "definition" :  { "name" : aDatasetName, "attributes" : [] },
-           "samples" : []
+      if(this.selChartType == "scatter" && !this.selAttribTwo){      
+        this.log("Please choose the second attribute.");
+        return;
+      }
+
+      var attribObj1 = null;
+      var attribObj2 = null;
+      var found = null;
+      for (var i in this.selectedDataset.definition.attributes) {
+        if(this.selectedDataset.definition.attributes[i].name === this.selAttribOne){
+          attribObj1 = this.selectedDataset.definition.attributes[i];
         }
 
-        // function Dataset () {
-        //   this.definition = ;
-        //   this.samples = []; 
-        // }
-
-        // Dataset.prototype.addSample = function(attrib, type, value) {          
-        //   //this.samples.push(inputObj);
-        //   //this.samples.push({attrib : {type, value}});
-        //   this.samples.push({attrib : {type, value}});
-        // };
-      }
-
-      if(!aName){
-        this.log("Please provide a name for the sample attribute.");
-        return null;
-      }
-
-      if(this.newAttributes && this.selectedDataset){
-        var text = "";
-        this.newAttributes.forEach(function(t) {
-
-          // this.selectedDataset.definition.attributes.forEach(function(t) {
-          //   if(t.name === aName){
-          //     this.log("Please provide a unique name." + "'" + aName + "'" +
-          //      "is within original dataset defintion.");
-          //     return null;
-          //   }
-          // });
-
-          if(t.name === aName){
-            text = "Please provide a unique name.";
-            return null;
-          }
-        });
-
-        if(text){
-          this.log(text);
-          return null;
+        if(this.selectedDataset.definition.attributes[i].name === this.selAttribTwo){
+          attribObj2 = this.selectedDataset.definition.attributes[i];
         }
       }
 
-      // No validation nessesary for arbitrary 
-
-      // Check bounds when applicable so value can be bounded.
-      if(aType === "floating-point" || 
-        aType === "integer"){
-        // Get bounds
-        aLower = document.getElementById("attribLower").value;
-        aUpper = document.getElementById("attribUpper").value;
-        
-        if(!aLower){
-          this.log("Please specify lower bounds.");
-          return null;
-        }
-
-        if(!aUpper){
-          this.log("Please specify upper bounds.");
-          return null;
-        }
-
-        aLower = Number(aLower);
-        aUpper = Number(aUpper);
-
-        if(aLower > aUpper){
-          this.log("Lower must be lower than or equal to upper.");
-          return null;
-        }
-      }
-      
-      if(aType === "enumerated"){
-        var aValue = document.getElementById("attribValue").value;
-        if(!aValue){
-          this.log("Please specify value.");
-          return null;
-        }
-
-        // split by comma, remove dups.
-        var tokens= Array.from(new Set(aValue.split(',')));
-
-        var reformed = [];
-        tokens.forEach(function(t) {
-          t = t.trim();
-          t = t.replace(" ", "_");
-          reformed.push(t);  
-        });
-        aValue = reformed;
+      if(this.selChartType == "scatter"){
+        this.postdataset({ "name" : this.visName, "location": this.location,  "attributes" : [attribObj1, attribObj2] });
+      } else {
+        this.postdataset({ "name" : this.visName, "location": this.location,  "attributes" : [attribObj1] });
       } 
       
-      // Format definiton.attributes entry given type
-      if(aType === "enumerated"){
-        return {"name" : aName, "type" : aType, "values" : aValue};
-      }else if(aType === "floating-point" || aType === "integer"){
-        return {"name" : aName, "type" : aType, "bounds" : {"max" : aUpper, "min": aLower} };
-      }else if(aType === "arbitrary"){
-        return {"name" : aName, "type" : aType };
-      }
-
+      
       return null;        
     },
-    attribChanged(){
-      var e = document.getElementById("attribbType");
-      //var value = e.options[e.selectedIndex].value;
-      var cboAttrib = e.options[e.selectedIndex].text;
-      
-      var attribs = this.attrib_types;
-      var found = null;
-      for (var i in attribs) {
-        if(attribs[i] === cboAttrib){
-          this.selAttrib = attribs[i];
-          break;
-        }
-      }
-      console.log("Attrib Set to " + this.selAttrib);
-    },
-    addSampleToSelDefn() {
-      if(this.newAttributes && this.selectedDataset){
-        for (var i in this.newAttributes) {
-          this.selectedDataset.definition.attributes.push(this.newAttributes[i]);
-        }
-        this.newAttributes = null
-
-        this.postdataset(this.selectedDataset);
-      }
-    },
-    addDataSet(){
-
-      this.attribChanged();
-
-      if(!this.selAttrib){
-        this.log("Please select an attribute type.");
-        return;
-      }
-
+    addVisualization(){
       var inputObj = this.createSampleObject();
 
       if(inputObj != null) {
@@ -196,14 +86,6 @@ const visualize_Defn_DataDefn_component = new Vue({
         this.newAttributes.push(inputObj);
       }
     },
-    setSampleName(location, i) {
-
-      
-    },      
-    setSampleType(location, i) {                
-
-      
-    },
     getData(){
       fetch("/api/datasets")
       .then(response => response.json())
@@ -215,7 +97,19 @@ const visualize_Defn_DataDefn_component = new Vue({
         }
       })     
     },
-    getdataset(location, i) {
+    getVisData(){
+      fetch("/api/visualizations", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+      })
+      .then(response => response.json())
+      .then((data) => {
+        this.visDatasets = data;
+      })
+    },
+    getDataset(location, i) {
       this.location = location;
       fetch(location, {
         method: "GET"
@@ -232,10 +126,13 @@ const visualize_Defn_DataDefn_component = new Vue({
         }
         return response;
       }
-      
-      fetch("/api/datasets", {
+
+      fetch("/api/visualizations", {
         body: JSON.stringify(dataset.definition),
         method: "POST",
+        headers: {
+          "Accept": "application/json"
+        },
         headers: {
           "Content-Type": "application/json",
         },
@@ -250,22 +147,18 @@ const visualize_Defn_DataDefn_component = new Vue({
       );
 
       this.selectedDataset = null;
-      this.newAttributes = null;
       this.selAttrib = null;
+      this.selChartType = "",
+      this.visName = "",
+      this.selAttrib2 = null,
+      this.selAttrib1 = null,
 
       this.getData();
     }
   },
-  computed: {
-    getSampleCount(){
-      if(this.selectedDataset.samples !== undefined || this.selectedDataset.samples != null){
-        return this.selectedDataset.samples.length + 1;     
-      }
-      return 1;
-    }
-  },
   mounted() {
     this.getData();
+    this.getVisData();
   },
   template: ` 
   <div>
@@ -273,124 +166,102 @@ const visualize_Defn_DataDefn_component = new Vue({
   <div v-if="datasets !== null" class="card mb-3">
     <div class="card mb-3">
     <div class="card-header">
-      <i class="fa fa-table"></i>Existing Datasets</div>
+      <i class="fa fa-table"></i>Choose existing dataset to visualize:</div>
     <div class="card-body">
       <div class="table-responsive">        
         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
           <thead>
             <tr>
-              <th>Definition Name</th>
-              <th>Location</th>
-              <th>Select</th>
+            <th>Available Datasets</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="dataset, i in datasets">
-              <td>{{dataset.name}}</td>
-              <td>{{dataset.location}}</td>
-              <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
+            <button class="btn btn-link" v-on:click="getDataset(dataset.location, i)">{{dataset.name}}</button>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
-      
   
   <div v-if="selectedDataset !== null" class="card mb-3">
     <div align="center">
       <div v-if="selectedDataset !== null">
-        <label for="datasetName">Dataset Name</label>
-        <input v-model="selectedDataset.definition.name" id="datasetName" name="datasetName" type="text">
-      </div>
-      <div v-else>
         <label for="datasetName">Visualization Name</label>
-        <input  id="datasetName" name="datasetName" type="text">
+        <input v-model="visName" id="datasetName" name="datasetName" type="text">
       </div>
       <div>
-        <label for="attribType">New Attribute Type</label>
-        <select id="attribType" v-on:change="attribChanged()">
-          <template v-for="attrib, i in chart_types">
-            <option>{{attrib}}</option>
+        <label for="cTypeType">Visualization Type:</label>
+        <select id="cTypeType" v-model="selChartType">
+          <template v-for="cType, i in chart_types">
+            <option>{{cType}}</option>
           </template>
         </select>
       </div>
-      <div v-if="selAttrib !== null"> 
-        <input id="attribType" name="attribType" type="hidden" v-model="selAttrib">
-        <div v-if="selAttrib === 'scatter'">
+      <div v-if="selChartType !== null"> 
+        <input id="attribType" name="attribType" type="hidden" v-model="selChartType">
+        <div v-if="selChartType === 'scatter'">
           <!-- two attributes from the dataset which are of the following types: {floating-point, integer} -->
           <label for="attribOne">Choose Attribute:</label>
-          <select id="attribOne">  
+          <select id="attribOne" v-model="selAttribOne">
             <template v-for="defn, i in selectedDataset.definition.attributes">
               <option>{{defn.name}}</option>
             </template>
           </select>
           <label for="attribTwo">Choose Attribute:</label>
-          <select id="attribTwo">   
+          <select id="attribTwo" v-model="selAttribTwo">
             <template v-for="defn, i in selectedDataset.definition.attributes">
               <option>{{defn.name}}</option>
             </template>
           </select>
         </div>
-        <div v-else-if="selAttrib === 'histogram'">    
+        <div v-else-if="selChartType === 'histogram'">    
           <!-- one attribute from the dataset which is one of the following types: {integer, enumerated, arbitrary} -->
           <label for="attribOne">Choose Attribute:</label>
-          <select id="attribOne">  
+          <select id="attribOne" v-model="selAttribOne">  
             <template v-for="defn, i in selectedDataset.definition.attributes">
               <option>{{defn.name}}</option>
             </template>
           </select>
         </div>
-        <div v-else-if="selAttrib === 'series'">
+        <div v-else-if="selChartType === 'series'">
           <!-- one attribute from the dataset which is of one of the following types: {integer, floating-point} -->
           <label for="attribOne">Choose Attribute:</label>
-          <select id="attribOne"> 
+          <select id="attribOne" v-model="selAttribOne">
             <template v-for="defn, i in selectedDataset.definition.attributes">
               <option>{{defn.name}}</option>
             </template>
           </select>
         </div>
       </div>      
-      <button id="add" v-on:click="addDataSet()">Save Dataset</button>          
+      <button id="add" v-on:click="addVisualization()">Submit Visualization Dataset</button>          
       <label for="add">
         <span class="error" name="error" id="error"></span>
       </label>
     </div>
     </div>
 
-    <div v-if="newAttributes !== null" class="card mb-3">
-      <div class="card-body">
-        <div class="table-responsive">        
-          <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-            <thead>
-              <tr>
-                <th>Attribute Name</th>
-                <th>Attribute Type</th>
-                <th>Optional Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="obj, o in newAttributes">
-                <td>{{obj.name}}</td>
-                <td>{{obj.type}}</td>
-                <td v-if="obj.type == 'enumerated'">
-                  {{obj.values}}
-                </td>
-                <td v-else-if="obj.type == 'floating-point' || obj.type == 'integer'">
-                  upper: {{obj.bounds.max}}, lower: {{obj.bounds.min}}
-                </td>
-                <td v-else></td>
-              </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    <div class="card mb-3">
+    <div class="card-header">
+      <i class="fa fa-table"></i>Server Provided Visualization Datasets</div>
+    <div class="card-body">
+      <div class="table-responsive">        
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Available Visualizations</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="dataset, i in visDatasets">
+              <p>{{dataset.name}}</p>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <button id="append" name="append" v-on:click="addSampleToSelDefn()">Add</button>          
-      <label for="append">
-        <span class="error" name="appEndError" id="appEndError"></span>
-      </label>
     </div>
+  </div>
     
     <div v-if="selectedDataset !== null" class="card mb-3">
       <div class="card-header">
