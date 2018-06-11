@@ -5,15 +5,18 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -34,56 +37,73 @@ class ScatterPlotViz extends Visualization.Scatter {
         this.name = name;
 	}
 
-	public static XYDataset createDataset()
+    static final class Extractor extends Value.DefaultVisitor {
+        private Optional<Double> extracted = Optional.empty();
+        private Extractor() {
+        }
+        @Override
+        protected void defaulted() {
+            throw new RuntimeException("Invalid Value Type");
+        }
+        @Override
+        public void visit(Value.FloatingPoint fp) {
+            extracted = Optional.of(fp.value);
+        }
+        @Override
+        public void visit(Value.Int i) {
+            extracted = Optional.of(Integer.valueOf(i.value).doubleValue());
+        }
+        static double extract(Value v) {
+            Extractor extractor = new Extractor();
+            v.accept(extractor);
+            return extractor.extracted
+                .orElseThrow(() -> new RuntimeException("Unknown Value Type"));
+        }
+    }
+
+	public XYDataset createDataset()
 	{
 		XYSeriesCollection dataset = new XYSeriesCollection();
-		XYSeries series1 = new XYSeries("Object1");
-		double[] key = new double[25], value = new double[25];
-		Random generator = new Random();
-		for(int i = 0; i<25; i++)
-		{
-			key[i] = i;
-			value[i]=generator.nextDouble();
-			series1.add(key[i], value[i]);
-		}
+		final XYSeries series1 = new XYSeries("");
+        List<DataPoint> data = data();
+		//double[] key = new double[25], value = new double[25];
+        double[] key = data.stream()
+            .map(point -> point.x)
+            .mapToDouble(Extractor::extract)
+            .toArray();
+        double[] value = data.stream()
+            .map(point -> point.y)
+            .mapToDouble(Extractor::extract)
+            .toArray();
+        data.stream().forEach(point -> {
+            series1.add(
+                    Extractor.extract(point.x),
+                    Extractor.extract(point.y));
+        });
 		dataset.addSeries(series1);
 		return dataset;		
 	}
 	
-	private static File createChartPanel() {
-		String chartTitle = "Object1 XY Scatter Plot";
-		String xAxisLabel = "Key";
-		String yAxisLabel = "Value";
+	private byte[] createChartPanel() {
+		String chartTitle = name;
+		String xAxisLabel = xAxis.name();
+		String yAxisLabel = yAxis.name();
 		XYDataset dataset = createDataset();
-		JFreeChart chart = ChartFactory.createXYAreaChart(chartTitle, xAxisLabel, yAxisLabel, dataset);
+		JFreeChart chart = ChartFactory.createScatterPlot(chartTitle, xAxisLabel, yAxisLabel, dataset,PlotOrientation.VERTICAL, false, false, false);
 		int width = 500;
 		int height = 300;
-		File file = null;
 		try {
-			file = new File("xyScatterTest.png");
-			ChartUtilities.saveChartAsPNG(file, chart, width, height);
-		}catch(Exception e) {
-			e.printStackTrace();
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			ChartUtilities.writeChartAsPNG(stream, chart, width, height);
+            return stream.toByteArray();
+		}catch(IOException e) {
+            throw new RuntimeException("Couldn't render chart", e);
 		}
-		return file;
 	}
 
 	@Override
 	public Image render() {
-		// TODO Auto-generated method stub
-		File file = createChartPanel();
-		BufferedImage bufferedImage;
-		ImageImpl image =  null; 
-		try {
-			bufferedImage = ImageIO.read(file);
-			WritableRaster raster = bufferedImage .getRaster();
-			DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
-			image = new ImageImpl("png", data.getData());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-     	 return image;
+        return new ImageImpl("image/png", createChartPanel());
 	}
 
 	
@@ -92,21 +112,15 @@ class ScatterPlotViz extends Visualization.Scatter {
 		return name;
 	}
 
-
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<DataPoint> data() {
 		// TODO Auto-generated method stub
-		List<Sample> list = getDataset().getSamples();
-		List<DataPoint> dataPoints = new ArrayList<>();
-		for(Sample loop : list)
-		{
-			Optional <Value.FloatingPoint> val1 = (Optional<FloatingPoint>) loop.get(xAxis.name());
-			Optional <Value.FloatingPoint> val2 = (Optional<FloatingPoint>) loop.get(yAxis.name());
-			DataPoint dp = new DataPoint(val1.get(), val2.get());
-			dataPoints.add(dp);
-		}		
-		return dataPoints;
+		return getDataset().getSamples().stream()
+            .map(samp -> {
+                return new DataPoint(
+                        samp.get(xAxis.name()).get(),
+                        samp.get(yAxis.name()).get());
+            }).collect(Collectors.toList());
 	}
 
 }

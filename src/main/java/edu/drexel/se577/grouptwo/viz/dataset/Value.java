@@ -43,6 +43,11 @@ public interface Value {
             // Greater than all other countables;
             return 1;
         }
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 
     public static final class Int implements Value, Countable {
@@ -77,6 +82,11 @@ public interface Value {
             // less than all other countables;
             return -1;
         }
+
+        @Override
+        public String toString() {
+            return Integer.toString(value);
+        }
     }
 
     public static final class FloatingPoint implements Value {
@@ -101,6 +111,11 @@ public interface Value {
             if (!FloatingPoint.class.isInstance(o)) return false;
             FloatingPoint other = FloatingPoint.class.cast(o);
             return value == other.value;
+        }
+
+        @Override
+        public String toString() {
+            return Double.toString(value);
         }
     }
 
@@ -137,6 +152,11 @@ public interface Value {
             if (Int.class.isInstance(c)) return 1;
             // less than all other countables;
             return -1;
+        }
+
+        @Override
+        public String toString() {
+            return value;
         }
     }
 

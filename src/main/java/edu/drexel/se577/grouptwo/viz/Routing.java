@@ -166,7 +166,7 @@ public abstract class Routing {
                 obj.add("data", data);
                 obj.addProperty("name", hist.getName());
                 obj.addProperty("style", STYLE_HISTOGRAM);
-                obj.addProperty("dataset", VISUALIZATION_PATH.resolve(
+                obj.addProperty("dataset", DATASETS_PATH.resolve(
                             URI.create(hist.getId())).toString());
                 attributes.add(context.serialize(hist.attribute,Attribute.class));
                 object = Optional.of(obj);
@@ -177,7 +177,7 @@ public abstract class Routing {
                 JsonObject obj = new JsonObject();
                 obj.addProperty("name", scatter.getName());
                 obj.addProperty("style", STYLE_SCATTERPLOT);
-                obj.addProperty("dataset", VISUALIZATION_PATH.resolve(
+                obj.addProperty("dataset", DATASETS_PATH.resolve(
                             URI.create(scatter.getId())).toString());
                 final JsonArray attributes = new JsonArray();
                 final JsonArray data = new JsonArray();
@@ -200,7 +200,7 @@ public abstract class Routing {
                 JsonObject obj = new JsonObject();
                 obj.addProperty("name", series.getName());
                 obj.addProperty("style", STYLE_SERIES);
-                obj.addProperty("dataset", VISUALIZATION_PATH.resolve(
+                obj.addProperty("dataset", DATASETS_PATH.resolve(
                             URI.create(series.getId())).toString());
                 final JsonArray attributes = new JsonArray();
                 final JsonArray data = new JsonArray();
@@ -235,7 +235,7 @@ public abstract class Routing {
             final JsonObject obj = elem.getAsJsonObject();
             final String name = obj.getAsJsonPrimitive("name").getAsString();
             final String style = obj.getAsJsonPrimitive("style").getAsString();
-            final URI datasetURI = VISUALIZATION_PATH.relativize(URI.create(
+            final URI datasetURI = DATASETS_PATH.relativize(URI.create(
                         obj.getAsJsonPrimitive("dataset").getAsString()));
             Iterator<JsonElement> attrIterator =
                 obj.getAsJsonArray("attributes").iterator();
@@ -573,8 +573,8 @@ public abstract class Routing {
     private static Routing instance = null;
 
     static Routing getInstance() {
-       instance = Optional.ofNullable(instance).orElseGet(DemoRouting::new);
-         //instance = Optional.ofNullable(instance).orElseGet(RealRouting::new);
+        // instance = Optional.ofNullable(instance).orElseGet(DemoRouting::new);
+        instance = Optional.ofNullable(instance).orElseGet(RealRouting::new);
         return instance;
     }
 
