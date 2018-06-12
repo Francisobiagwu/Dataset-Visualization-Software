@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -140,16 +141,19 @@ class XLSInputHandler implements FileInputHandler {
 
                         // Extra work but we want o classify the number as an integer if possible.
                         String token = value.toString();
-                        try {
-                            // falls though when value has a mantissa.
-                            int val = Integer.parseInt(token);
-                            edu.drexel.se577.grouptwo.viz.dataset.Value.Int fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Int(
-                                    val);
-                            values.add(fp);
-                            integers.add(val);
-                            continue;
-                        } catch (NumberFormatException ex) {
-                            // Not an integer... thats fine.
+
+                        if(value == value.intValue()){
+                            try {
+                                // falls though when value has a mantissa.
+                                int val = value.intValue();
+                                edu.drexel.se577.grouptwo.viz.dataset.Value.Int fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Int(
+                                        val);
+                                values.add(fp);
+                                integers.add(val);
+                                continue;
+                            } catch (NumberFormatException ex) {
+                                // Not an integer... thats fine.
+                            }
                         }
 
                         try {
@@ -168,6 +172,25 @@ class XLSInputHandler implements FileInputHandler {
                         }
                     } 
                 }
+                
+                Sample s = new Sample();
+                for (Value v : values) {
+
+                    String sName = "integer";
+                    if(v.getClass() == edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint.class){
+                        sName = "floating";
+                    }else if(v.getClass() == edu.drexel.se577.grouptwo.viz.dataset.Value.Int.class){
+                        //sName = "color"; 
+                    }else if(v.getClass() == edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary.class){
+                        sName = "comment";
+                    }
+                    
+                    //String sName = sKey + Integer.toString(count);
+                    s.put(sName, v);
+                }
+                contents.getSamples().add(s);
+
+                values.clear();
             }            
             stream.close();
             wb.close();
@@ -190,19 +213,15 @@ class XLSInputHandler implements FileInputHandler {
             contents.getDefinition().put(new Attribute.Arbitrary("comment"));
 
             // Add enumerated type, given found enumerations
-            contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
+            //contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
 
-            int count = 1;
-            Sample s = new Sample();
-            contents.getSamples().add(s);
-            for (Value v : values) {
-                s.put(sKey + Integer.toString(count), v);
-                contents.getSamples().add(s);
-            }
-
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (EncryptedDocumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InvalidFormatException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

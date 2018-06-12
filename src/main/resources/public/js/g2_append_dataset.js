@@ -46,7 +46,7 @@ Vue.component("dataset-row", {
     template: `
     <tr>
         <td>
-            <a v-on:click="getdataset()">{{dataset.name}}</a>
+            <button class="btn btn-link" v-on:click="getdataset()">{{dataset.name}}</button>
         </td>
         <td>{{dataset.location}}</td>
     </tr>

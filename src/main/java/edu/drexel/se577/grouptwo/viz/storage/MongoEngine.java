@@ -24,7 +24,7 @@ import org.bson.BsonInt32;
 import org.bson.BsonDouble;
 import org.bson.BsonString;
 import org.bson.Document;
-import com.mongodb.client.model.Filters;;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;

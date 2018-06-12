@@ -1,4 +1,4 @@
-temperature,25.5,25,
-capacity,100,,50
-color,"[Green,red,blue]",,red
-comment,a comment,,an other comment
+sample1,25.5,25,comment 1
+sample2,23.5,23,comment 2
+sample3,10.5,10,comment 3
+sample4,5.5,5,comment 4

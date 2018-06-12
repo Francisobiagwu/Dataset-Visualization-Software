@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 
 import com.opencsv.CSVReader;
@@ -168,7 +169,28 @@ public class CSVInputHandler implements FileInputHandler {
                         }
                     }
                 }
+
+                Sample s = new Sample();
+                for (Value v : values) {
+
+                    String sName = "integer";
+                    if(v.getClass() == edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint.class){
+                        sName = "floating";
+                    }else if(v.getClass() == edu.drexel.se577.grouptwo.viz.dataset.Value.Int.class){
+                        //sName = "color"; 
+                    }else if(v.getClass() == edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary.class){
+                        sName = "comment";
+                    }
+                    
+                    //String sName = sKey + Integer.toString(count);
+                    s.put(sName, v);
+                }
+                contents.getSamples().add(s);
+
+                values.clear();
             }
+
+            csvReader.close();
 
             // Determine min/max integers and floats, then add attributes.            
             if(integers.size() > 0){
@@ -188,19 +210,11 @@ public class CSVInputHandler implements FileInputHandler {
             contents.getDefinition().put(new Attribute.Arbitrary("comment"));
 
             // Add enumerated type, given found enumerations
-            contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
-
-            int count = 1;
-            Sample s = new Sample();
-            contents.getSamples().add(s);
-            for (Value v : values) {
-                s.put(sKey + Integer.toString(count), v);
-                contents.getSamples().add(s);
-            }
+            //contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }   
 
         return Optional.of(contents);
     }

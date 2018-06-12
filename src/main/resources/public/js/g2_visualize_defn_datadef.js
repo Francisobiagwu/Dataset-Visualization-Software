@@ -17,7 +17,7 @@ Vue.component("series-definition-panel", {
         headers: {
           "Content-Type": "application/json",
         },
-      });
+      }); 
     },
   },
   template: `
@@ -170,7 +170,7 @@ Vue.component("visualization-definition-panel", {
               v-bind:name="name"
               v-bind:datasetLoc="this.dataset.location"
               v-bind:attributes="filter_arithmetic(attributes())">
-          </scatterplot-definition-panel>
+          </series-definition-panel>
         </div>
         <div v-else>
         </div>
@@ -371,8 +371,27 @@ const visualize_Defn_DataDefn_component = new Vue({
     </div>
 
     <div v-if="selectedDataset !== null">
-      <visualization-definition-panel v-bind:dataset="selectedDataset">
+      <visualization-definition-panel v-bind:dataset="selectedDataset"/>
     </div>
+
+    <div v-if="visDatasets !== null">
+      <div class="card mb-3">
+      <div class="card-header">
+        <i class="fa fa-table"></i>Existing Visualizations</div>
+      <div class="card-body">
+        <div class="table-responsive">        
+          <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <tbody>
+              <tr v-for="dataset, i in visDatasets">
+                <p>{{dataset.name}}</p>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+    
 
   </div>
   `,
