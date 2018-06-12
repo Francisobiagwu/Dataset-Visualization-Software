@@ -114,8 +114,18 @@ public abstract class Routing {
     }
 
     final URI instanciateVisualization(String body) {
-        Visualization viz = gson.fromJson(body, Visualization.class);
-        return VISUALIZATION_PATH.resolve(storeVisualization(viz));
+        try {
+            Visualization viz = gson.fromJson(body, Visualization.class);
+            return VISUALIZATION_PATH.resolve(storeVisualization(viz));
+        } catch (RuntimeException re) {
+            System.err.println(body);
+            System.err.println(re.toString());
+            Stream.of(re.getStackTrace())
+                .map(Object::toString)
+                .reduce((a,b) -> a + "\n" + b)
+                .ifPresent(System.err::println);
+            throw re;
+        }
     }
 
     final URI instanciateDefinition(String body) {

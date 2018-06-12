@@ -19,6 +19,7 @@ class StubVisualization {
         }
         @Override
         public void visit(Attribute.Int attr) {
+            attribute = Optional.of(attr);
         }
         @Override
         public void visit(Attribute.Arbitrary attr) {
