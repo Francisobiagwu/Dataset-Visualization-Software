@@ -1,178 +1,173 @@
-const append_dataset_component = new Vue({
-    el: "#append_dataset",
-    data: {
-      datasets: [],
-      location: null,
-      selectedDataset: null,
-      newSample: null,
-      selAttrib: null
-    },
+Vue.component("dataset-samples-table", {
+    props: ['dataset'],
+    template: `
+    <div class="card mb-3">
+      <div class="card-header">
+        <i>Dataset:</i> {{dataset.definition.name}}
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+        <table class="table table-bordered" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <td v-for="attr in dataset.definition.attributes">
+                <strong>{{attr.name}}</strong>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="sample in dataset.samples">
+              <td v-for="attr in dataset.definition.attributes">
+                {{sample[attr.name].value}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+    `
+});
+Vue.component("dataset-row", {
+    props: ['dataset','selection'],
     methods: {
-      log(status){
-        var error = document.getElementById("error");
-        console.log(status);
-        if (typeof status.statusText != 'undefined')
-          error.innerText = status.statusText;
-        else
-          error.innerText = status;
-      },
-      createSampleObject(){
-        var aValue = null;
-        var aLower = null;
-        var aUpper = null;
-        var aType = this.selAttrib.type;
-        var aName = document.getElementById("attribName").value;
-        
-        if(!aName){
-          this.log("Please provide a name for the sample attribute.");
-          return null;
-        } 
-
-        // Check bounds when applicable so value can be bounded.
-        if(aType === "floating-point" || 
-          aType === "integer"){
-          // Get bounds
-          aLower = document.getElementById("attribLower").value;
-          aUpper = document.getElementById("attribUpper").value;
-          
-          if(!aLower){
-            this.log("Please specify lower bounds.");
-            return null;
-          }
-
-          if(!aUpper){
-            this.log("Please specify upper bounds.");
-            return null;
-          }
-
-          if(aLower > aUpper){
-            this.log("Lower must be lower than or equal to upper.");
-            return null;
-          }
-        }
-
-        if(aType === "enumerated"){
-          var e = document.getElementById("attribSelValue");
-          aValue = e.options[e.selectedIndex].text;
-        } else {
-          aValue = document.getElementById("attribValue").value;
-        }
-
-        if(!aValue){
-          this.log("Please specify value.");
-          return null;
-        }
-        
-        // Check bounded value when applicable.
-        if(aType === "floating-point" || 
-          aType === "integer"){
-          if(aValue < aLower){
-            this.log("Value must be greater than or equal to lower.");
-            return null;
-          }
-
-          if(aValue > aUpper){
-            this.log("Value must be less than or equal to upper.");
-          }
-        }
-
-        return {"name" : aName, "payload" : {"type" : aType, "value" : aValue}};
-      },
-      attribChanged(){
-        var e = document.getElementById("attribType");
-        //var value = e.options[e.selectedIndex].value;
-        var cboAttrib = e.options[e.selectedIndex].text;
-        
-        var attribs = this.selectedDataset.definition.attributes;
-        var found = null;
-        for (var i in attribs) {
-          if(attribs[i].type === cboAttrib){
-            this.selAttrib = attribs[i];
-            break;
-          }
-        }
-        this.log("Attrib Set to: " + this.selAttrib);
-      },
-      addSampleToSelDefn() {
-        if(this.newSample && this.selectedDataset){
-          this.selectedDataset.samples.push(this.newSample);
-          this.postdataset(this.selectedDataset);
-        }
-      },
-      addDataSet(){
-        if(this.selectedDataset === null)
-          return;
-
-        this.attribChanged();
-
-        if(!this.selAttrib){
-          this.log("Please select an attribute type.");
-          return;
-        }
-
-        var inputObj = this.createSampleObject();
-
-        if(inputObj != null) {
-          // We've got valid inputs, add the sample...
-          if(!this.newSample){
-            this.newSample = {};
-          }
-          
-          Vue.set(this.newSample, inputObj.name, inputObj.payload)
-                    
-          this.log("Dataset added.");
-        }
-      },
-      setSampleName(location, i) {
-
-        
-      },      
-      setSampleType(location, i) {                
-
-        
-      },
-      getdataset(location, i) {
-        this.location = location;
-        fetch(location, {
+      getdataset: function () {
+        let location = this.dataset.location
+        fetch(this.dataset.location, {
           method: "GET"
         })
         .then(response => response.json())
         .then((data) => {
-          this.selectedDataset = data;
+          this.selection.dataset = data;
+          this.selection.dataset.location = location;
         })        
-      },
-      postdataset(dataset) {
-        fetch(this.location, {
-          body: JSON.stringify(this.newSample),
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then(response => response.json())
-        .then((data) => {
-          this.selectedDataset = data;
-        })
-
-        this.newSample = null
       }
     },
-    computed: {
-      getSampleCount(){
-        if(this.selectedDataset.samples !== undefined || this.selectedDataset.samples != null){
-          return this.selectedDataset.samples.length + 1;     
+    template: `
+    <tr>
+        <td>
+            <a v-on:click="getdataset()">{{dataset.name}}</a>
+        </td>
+        <td>{{dataset.location}}</td>
+    </tr>
+    `
+});
+Vue.component("dataset-sample-entry", {
+    props: ['sample','attribute'],
+    template: `
+    <td>
+      <div v-if="attribute.type === 'integer'">
+        <input
+            type="number"
+            v-bind="{ max: attribute.bounds.max, min: attribute.bounds.min }"
+            v-model.number="sample[attribute.name]"></input>
+      </div>
+      <div v-else-if="attribute.type === 'floating-point'">
+        <input
+            type="number"
+            step="0.001"
+            v-bind="{ max: attribute.bounds.max, min: attribute.bounds.min }"
+            v-model.number="sample[attribute.name]"></input>
+      </div>
+      <div v-else-if="attribute.type === 'enumerated'">
+        <select v-model="sample[attribute.name]"></input>
+          <option disabled value="">Please select one</option>
+          <option v-for="value in attribute.values">{{value}}</option>
+        </select>
+      </div>
+      <div v-else-if="attribute.type === 'arbitrary'">
+        <input v-model.number="sample[attribute.name]"></input>
+      </div>
+      <div v-else>
+        No Clue
+      </div>
+    </td>
+    `
+});
+Vue.component("dataset-sample-form", {
+    props: ['dataset'],
+    data: function () {
+        return {sample: {}}
+    },
+    methods: {
+        postsample: function() {
+            var forSend = {}
+            for (let attribute of this.dataset.definition.attributes) {
+                forSend[attribute.name] = {
+                    type: attribute.type,
+                    value: this.sample[attribute.name]
+                }
+            }
+            fetch(this.dataset.location, {
+                body: JSON.stringify(forSend),
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                this.dataset.samples = data.samples;
+            });
         }
-        return 1;
-      }
     },
-    mounted() {
-      fetch("/api/datasets")
+    template: `
+    <div class="card mb-3">
+      <div class=card-header>
+        Append a sample
+      </div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <td v-for="attribute in dataset.definition.attributes">{{attribute.name}}: {{attribute.type}}</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <dataset-sample-entry
+                  v-for="attribute in dataset.definition.attributes"
+                  v-bind:sample="sample"
+                  v-bind:attribute="attribute"
+                  v-bind:key="attribute.name">
+              </dataset-sample-entry>
+            </tr>
+            <tr>
+                <td>
+                    <button v-on:click="postsample">Append</button>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    `
+});
+const append_sample_component = new Vue({
+    el: "#append-sample",
+    data: {
+        datasets: [],
+        selection: { dataset: null }
+    },
+    methods: {
+        reloadDataset: function () {
+            let location = this.selection.dataset.location;
+            fetch(location)
+            .then(response => response.json())
+            .then(data => {
+                this.selection.dataset = data;
+                this.selection.dataset.location = location;
+            });
+        },
+    },
+    mounted: function () {
+        fetch("/api/datasets")
         .then(response => response.json())
         .then((data) => {
-          this.datasets = data;
-        })
+            this.datasets = data;
+        });
     },
-    template: ` 
+    template: `
     <div>
       <div class="card mb-3">
         <div class="card-header">
@@ -184,138 +179,31 @@ const append_dataset_component = new Vue({
                 <tr>
                   <th>Definition Name</th>
                   <th>Location</th>
-                  <th>Select</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="dataset, i in datasets">
-                  <td>{{dataset.name}}</td>
-                  <td>{{dataset.location}}</td>
-                  <td><button v-on:click="getdataset(dataset.location, i)">Select</button></td>
-                </tr>
+                <dataset-row
+                  v-for="dataset in datasets"
+                  v-bind:dataset="dataset"
+                  v-bind:selection="selection"
+                  v-bind:key="dataset.location"></dataset-row>
               </tbody>
             </table>
           </div>
         </div>
       </div>
-
-      <div v-if="selectedDataset !== null" class="card mb-3">      
-        <div align="center">         
-        <div>
-          <label for="attribName">Data Point Name</label>
-          <input id="attribName" name="attribName" type="text">
-        </div>
-        <div>
-          <label for="attribType">Data Point Type</label>
-          <select id="attribType" v-on:change="attribChanged()">
-            <template v-for="attrib, i in selectedDataset.definition.attributes">  
-              <option>{{attrib.type}}</option>
-            </template>
-          </select>
-        </div>
-        <div v-if="selAttrib !== null"> 
-          <input id="attribType" name="attribType" type="hidden" v-model="selAttrib.type">
-          <div v-if="selAttrib.type === 'floating-point'">
-            <!-- name(string) type(string) bounds(obj : lower : value, upper : value)  value(string)-->
-            <label for="attribValue">Value:</label>
-            <input id="attribValue" name="attribValue"  type="text">
-            <label for="attribUpper">Upper Bounds:</label>
-            <input id="attribUpper" name="attribUpper"  type="text">
-            <label for="attribLower">Lower Bounds:</label>
-            <input id="attribLower" name="attribLower"  type="text"> 
-          </div>
-          <div v-else-if="selAttrib.type === 'arbitrary'">    
-            <!-- name(string) type(string) value(string) -->
-            <label for="attribValue">Value:</label>
-            <input id="attribValue" name="attribValue"  type="text">  
-          </div>
-          <div v-else-if="selAttrib.type === 'integer'">
-            <!-- name(string) type(string) bounds(obj : lower : value, upper : value) -->
-            <label for="attribValue">Value:</label>
-            <input id="attribValue" name="attribValue"  type="text">
-            <label for="attribUpper">Upper Bounds:</label>
-            <input id="attribUpper" name="attribUpper"  type="text">
-            <label for="attribLower">Lower Bounds:</label>
-            <input id="attribLower" name="attribLower"  type="text">  
-          </div>
-          <div v-else>
-            <!-- name(string) type(string) values(array) value(selected option) -->
-            <div>
-              <label for="attribSelValue">Property Type</label>
-              <select id="attribSelValue">
-                <template v-for="value, i in selAttrib.values">  
-                  <option>{{value}}</option>
-                </template>
-              </select>
-            </div>
-          </div>
-        </div>
-        <button v-model="newSample" id="add" v-on:click="addDataSet()">Add Data</button>          
-        <label for="add">
-          <span class="error" name="error" id="error"></span>
-        </label>
+      <div v-if="selection.dataset !== null" class="card mb-3">
+        <dataset-sample-form
+          v-bind:dataset="selection.dataset"
+          v-bind:key="selection.dataset.location">
+        </dataset-sample-form>
       </div>
-      </div>
-
-      <div v-if="newSample !== null" class="card mb-3">
-        <div class="card-header">
-          <i class="fa fa-table"></i>Sample {{getSampleCount}}
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">        
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Values</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="obj, o in newSample">
-                  <td>{{o}}</td>
-                  <td>{{obj.type}}</td>   
-                  <td>{{obj.value}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <button v-model="selectedDataset" id="append" name="append" v-on:click="addSampleToSelDefn()">Save Dataset</button>          
-        <label for="append">
-          <span class="error" name="appEndError" id="appEndError"></span>
-        </label>
-      </div>
-
-      <div v-if="selectedDataset !== null" class="card mb-3">
-        <div class="card-header">
-          <i class="fa fa-table"></i>Dataset: "{{selectedDataset.definition.name}}" Existing Samples </div>
-        <div class="card-body">
-          <div class="table-responsive">        
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-                <tr>
-                  <th>Sample</th>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Values</th>
-                </tr>
-              </thead>
-              <tbody>
-                <template v-for="sample, s in selectedDataset.samples">
-                  <tr v-for="obj, o in sample">
-                    <td>{{s + 1}}</td> 
-                    <td>{{o}}</td>
-                    <td>{{obj.type}}</td>   
-                    <td>{{obj.value}}</td>
-                  </tr>
-                </template>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div v-if="selection.dataset !== null">
+        <dataset-samples-table
+          v-bind:dataset="selection.dataset"
+          v-bind:key="selection.dataset.location">
+        </dataset-samples-table>
       </div>
     </div>
-    `,
+    `
 });

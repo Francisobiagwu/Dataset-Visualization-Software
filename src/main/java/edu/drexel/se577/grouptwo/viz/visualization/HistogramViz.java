@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
 
@@ -74,8 +76,13 @@ class HistogramViz extends Visualization.Histogram {
 	
 	@Override
 	public Image render() {
+        final String row = "";
 		List<DataPoint> datapoints = data();
 
+        final DefaultCategoryDataset catDataset = new DefaultCategoryDataset();
+        datapoints.stream().forEach(point -> {
+            catDataset.addValue(point.count, row, point.bin);
+        });
         double[] values = datapoints.stream()
             .map(point -> point.count)
             .mapToDouble(count -> Long.valueOf(count).doubleValue())
@@ -97,33 +104,31 @@ class HistogramViz extends Visualization.Histogram {
 		HistogramDataset hdataset = new HistogramDataset();
 		hdataset.setType(HistogramType.FREQUENCY);
 		hdataset.addSeries("Histogram", values, number);
-		String plotTitle = "Histogram";
-		String xAxis = "Number";
-		String yAxis = "Value";
+		String plotTitle = name;
+		String xAxis = "Values";
+		String yAxis = "Number of Instances";
 		PlotOrientation orientation = PlotOrientation.VERTICAL;
 		boolean show = false;
 		boolean toolTips = false;
 		boolean urls = false;
-		JFreeChart chart = ChartFactory.createHistogram(plotTitle, xAxis, yAxis, hdataset, orientation, true, toolTips, urls);
+		JFreeChart chart = ChartFactory.createBarChart(plotTitle, xAxis, yAxis, catDataset, orientation, false, false, false);
 		int width = 500;
 		int height = 300;
+        /*
 		try {
 			ChartUtilities.saveChartAsPNG(new File("histogramTest.png"), chart, width, height);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		BufferedImage bufferedImage;
-		ImageImpl image =  null; 
+        */
 		try {
-			bufferedImage = ImageIO.read(new File("histogramTest.png"));
-			WritableRaster raster = bufferedImage .getRaster();
-			DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
-			image = new ImageImpl("png", data.getData());
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            ChartUtilities.writeChartAsPNG(stream, chart, width, height);
+			return new ImageImpl("image/png", stream.toByteArray());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Couldn't render image", e);
 		}
-     	 return image;
 	}
 
 	@Override

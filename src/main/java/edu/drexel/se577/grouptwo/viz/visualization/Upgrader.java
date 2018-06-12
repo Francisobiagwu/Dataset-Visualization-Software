@@ -52,7 +52,9 @@ public final class Upgrader implements Visualization.Visitor {
         dataset.getDefinition().get(series.attribute.name())
             .filter(series.attribute::equals)
             .orElseThrow(() -> new RuntimeException("No matching attribute"));
-        product = Optional.of(series);
+        Visualization.Series viz =
+            new SeriesImpl(series.getName(), id, dataset, series.attribute);
+        product = Optional.of(viz);
     }
 
     public static Visualization upgrade(String id, Visualization vis) {

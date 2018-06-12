@@ -1,6 +1,6 @@
 package edu.drexel.se577.grouptwo.viz.visualization;
 
-public class ImageImpl implements Visualization.Image {
+class ImageImpl implements Visualization.Image {
 
 	String type;
 	byte[] dataArray;

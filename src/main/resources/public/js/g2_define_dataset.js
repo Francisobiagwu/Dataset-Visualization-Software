@@ -402,15 +402,11 @@ const define_dataset_component = new Vue({
               <thead>
                 <tr>
                   <th>Definition Name</th>
-                  <th>Location</th>
-                  <th>Select</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="dataset, i in datasets">
-                  <td>{{dataset.name}}</td>
-                  <td>{{dataset.location}}</td>
-                  <td><button v-on:click="getdataset(dataset.location, i)">Choose</button></td>
+                <button class="btn btn-link" v-on:click="getdataset(dataset.location, i)">{{dataset.name}}</button>
                 </tr>
               </tbody>
             </table>

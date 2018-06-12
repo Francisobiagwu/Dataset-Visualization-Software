@@ -74,9 +74,9 @@ public interface Visualization {
         public final Attribute.Countable attribute;
 
         public static final class DataPoint {
-            public final Value bin;
+            public final Value.Countable bin;
             public final long count;
-            public DataPoint(Value bin, long count) {
+            public DataPoint(Value.Countable bin, long count) {
                 this.bin = bin;
                 this.count = count;
             }

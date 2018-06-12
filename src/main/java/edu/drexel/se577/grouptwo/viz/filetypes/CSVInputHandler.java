@@ -30,7 +30,7 @@ import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
  * @date 5/28/2018
  */
 
-class CSVInputHandler implements FileInputHandler {
+public class CSVInputHandler implements FileInputHandler {
 
     public static String EXT_CSV = "application/csv";
 

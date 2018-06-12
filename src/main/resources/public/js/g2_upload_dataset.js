@@ -147,13 +147,11 @@ const upload_dataset_component = new Vue({
               <thead>
                 <tr>
                   <th>Definition Name</th>
-                  <th>Location</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="dataset, i in datasets">
                   <td>{{dataset.name}}</td>
-                  <td>{{dataset.location}}</td>                  
                 </tr>
               </tbody>
             </table>
