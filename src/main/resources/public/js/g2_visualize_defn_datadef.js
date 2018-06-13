@@ -17,7 +17,9 @@ Vue.component("series-definition-panel", {
         headers: {
           "Content-Type": "application/json",
         },
-      }); 
+      }).then(() => {
+        this.$emit("posted-series");
+      }, () => {});
     },
   },
   template: `
@@ -52,6 +54,9 @@ Vue.component("histogram-definition-panel", {
                 headers: {
                     "Content-Type": "application/json",
                 },
+            }).then(() => {
+              this.$emit("posted-histogram");
+            }, () => {
             });
         },
     },
@@ -87,6 +92,9 @@ Vue.component("scatterplot-definition-panel", {
                 headers: {
                     "Content-Type": "application/json",
                 },
+            }).then(() => {
+              this.$emit("posted-scatter");
+            }, () => {
             });
         }
     },
@@ -113,6 +121,9 @@ Vue.component("scatterplot-definition-panel", {
 Vue.component("visualization-definition-panel", {
     props: ['dataset'],
     methods: {
+        propagatePost: function(attributes) {
+          this.$emit("posted-viz");
+        },
         filter_arithmetic: function(attributes) {
             const types = new Set(["integer", "floating-point"]);
             return attributes.filter(attr => types.has(attr.type));
@@ -153,6 +164,7 @@ Vue.component("visualization-definition-panel", {
         </select>
         <div v-if="style=='scatterplot'">
           <scatterplot-definition-panel
+              v-on:posted-scatter="propagatePost"
               v-bind:name="name"
               v-bind:datasetLoc="this.dataset.location"
               v-bind:attributes="filter_arithmetic(attributes())">
@@ -160,6 +172,7 @@ Vue.component("visualization-definition-panel", {
         </div>
         <div v-else-if="style=='histogram'">
           <histogram-definition-panel
+              v-on:posted-histogram="propagatePost"
               v-bind:name="name"
               v-bind:datasetLoc="this.dataset.location"
               v-bind:attributes="filter_countable(attributes())">
@@ -167,6 +180,7 @@ Vue.component("visualization-definition-panel", {
         </div>
         <div v-else-if="style=='series'">
           <series-definition-panel
+              v-on:posted-series="propagatePost"
               v-bind:name="name"
               v-bind:datasetLoc="this.dataset.location"
               v-bind:attributes="filter_arithmetic(attributes())">
@@ -192,6 +206,9 @@ const visualize_Defn_DataDefn_component = new Vue({
     chart_types: [ "histogram", "scatter", "series"]
   },
   methods: {
+    refreshVisualizations: function () {
+      this.getVisData();
+    },
     log(status){
       var error = document.getElementById("error");
       console.log(status);
@@ -371,7 +388,9 @@ const visualize_Defn_DataDefn_component = new Vue({
     </div>
 
     <div v-if="selectedDataset !== null">
-      <visualization-definition-panel v-bind:dataset="selectedDataset"/>
+      <visualization-definition-panel
+        v-on:posted-viz="refreshVisualizations"
+        v-bind:dataset="selectedDataset"/>
     </div>
 
     <div v-if="visDatasets !== null">
