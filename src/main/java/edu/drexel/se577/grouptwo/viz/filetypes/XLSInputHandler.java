@@ -4,12 +4,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -21,9 +25,6 @@ import edu.drexel.se577.grouptwo.viz.dataset.Attribute;
 import edu.drexel.se577.grouptwo.viz.dataset.Definition;
 import edu.drexel.se577.grouptwo.viz.dataset.Sample;
 import edu.drexel.se577.grouptwo.viz.dataset.Value;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileContents;
-import edu.drexel.se577.grouptwo.viz.filetypes.FileInputHandler;
-import edu.drexel.se577.grouptwo.viz.filetypes.XLSFileContents;
 
 /**
  * XLSInputHandler This class is responsible for parsing a bytearray of excel
@@ -35,6 +36,68 @@ class XLSInputHandler implements FileInputHandler {
     public static String EXT_XLS = "application/xls";
     public static String EXT_XLSX = "application/xlsx";
     
+    public static class ValueInterpreter {
+        public static edu.drexel.se577.grouptwo.viz.dataset.Value Interpret(Cell cell){
+
+            Value fp = null;
+
+            // ignore any cells of type CellType.ERROR, CellType.BLANK or CellType.FORMULA                    
+            if(cell.getCellTypeEnum() == CellType.BOOLEAN) {
+                boolean flag = cell.getBooleanCellValue();
+                fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                    Boolean.toString(flag));
+                return fp;
+            } else if(cell.getCellTypeEnum() == CellType.STRING) {
+                String token = cell.getStringCellValue();
+
+                // Check to see if the value was a comma delimited list./**
+                // commas were replaced with pipes above.
+                if (token.contains("[") || token.contains("]")) {  
+                    String enums = token.toString().replace("[", "").replace("]", "");
+                    fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
+                        enums);
+                    return fp;
+                } else {
+                    // Alright, all thats left is that the value is an arbitrary string.
+                    fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                            token);
+                    return fp;
+                }
+            } else if(cell.getCellTypeEnum() == CellType.NUMERIC) {                        
+                Double value = cell.getNumericCellValue();
+
+                // Extra work but we want o classify the number as an integer if possible.
+                String token = value.toString();
+
+                if(value == value.intValue()){
+                    try {
+                        // falls though when value has a mantissa.
+                        int val = value.intValue();
+                        fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Int(
+                                val);
+                        return fp;
+                    } catch (NumberFormatException ex) {
+                        // Not an integer... thats fine.
+                    }
+                }
+
+                try {
+                    // Apprently were dealing with a decimal
+                    float val = Float.parseFloat(token);
+                    fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint(
+                            val);
+                            return fp;
+                } catch (NumberFormatException ex) {
+                    // Not a float? really?. add as arbitrary
+                    fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
+                            token);
+                    return fp;
+                }
+            }
+            return fp;
+        }
+    }
+
     Attribute.Int attributeInt;
     Attribute.FloatingPoint attributeFloatingPoint;
     Attribute.Arbitrary attributeArbitary;
@@ -45,6 +108,8 @@ class XLSInputHandler implements FileInputHandler {
     @Override
     public Optional<? extends FileContents> parseFile(String name, byte[] inputBuffer) {
         XLSFileContents contents = new XLSFileContents(name);
+        Map<Integer, ColumnDesc> attributeMetrics = new HashMap<>();
+
         try {
             ByteArrayInputStream stream = new ByteArrayInputStream(inputBuffer);
 
@@ -54,7 +119,6 @@ class XLSInputHandler implements FileInputHandler {
 
             Iterator<org.apache.poi.ss.usermodel.Row> rowIterator = sheet.iterator();
 
-            String sKey = "";
             List<Value> values = new ArrayList<>();
             int maxInts = 0, minInts = 0;
             float maxFloats = 0,minFloats = 0;
@@ -65,144 +129,63 @@ class XLSInputHandler implements FileInputHandler {
             while (rowIterator.hasNext()) { // navigate the excel sheet one row at a time
                 org.apache.poi.ss.usermodel.Row row = rowIterator.next();
                 Iterator<Cell> cellIterator = row.cellIterator();
-                                    
+                int column = -1;
                 while (cellIterator.hasNext()) { // for each row, go through each column
+                    column++;
                     Cell cell = cellIterator.next();
 
-                    if(cell.getCellTypeEnum() != CellType.STRING)
-                        continue;
-
-                    String value = cell.getStringCellValue();
-                    if (value == null || value.isEmpty() || value.contains("#")) {
-                        continue;
+                    if(cell.getCellTypeEnum() == CellType.STRING){
+                        String value = cell.getStringCellValue();
+                        if (value == null || value.isEmpty() || value.contains("#")) {
+                            continue;
+                        }
+                        
+                        if(value.contains("^")){
+                            ColumnDesc temp = new ColumnDesc(value.replace("^", ""));
+                            attributeMetrics.put(column, temp);
+                            continue;
+                        }
+                    }
+                    
+                    ColumnDesc col = attributeMetrics.get(column);
+                    if(col == null) {
+                        // somethings very wrong, throw then return valid object that will fail validation.
+                        // Failure will send HTTP Response error letting user know of an issue.
+                        // TO DO: Bubble description of dataset errors to be shown to the user.
+                        throw new IOException("File parser error.");
+                    }                    
+                    Value dSetValue = ValueInterpreter.Interpret(cell);
+                    col.setValue(dSetValue);
+                }
+                
+                if(attributeMetrics.size() > 0){
+                    Sample s = new Sample();
+                    for (Map.Entry<Integer, ColumnDesc> entry : attributeMetrics.entrySet()) {
+                        ColumnDesc desc = entry.getValue();
+                        if(desc.getValue() != null){
+                            s.put(desc.name, desc.getValue());
+                        }                  
                     }
 
-                    sKey = value;
-                    break;
-                }
-
-                if (sKey.isEmpty())
-                    continue;
-                
-                while (cellIterator.hasNext()) { // for each row, go through each column
-                    Cell cell = cellIterator.next();
-
-                    // ignore any cells of type CellType.ERROR, CellType.BLANK or CellType.FORMULA                    
-                    if(cell.getCellTypeEnum() == CellType.BOOLEAN) {
-                        // Only unique values for enum
-                        if(!enumerated.contains("True_False")){
-                            edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
-                                "True");
-                            values.add(fp);
-                            fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
-                                "False");
-                            values.add(fp);
-                            enumerated.add("True");
-                            enumerated.add("False");
-                        }
-                    } else if(cell.getCellTypeEnum() == CellType.STRING) {
-                        String token = cell.getStringCellValue();
-
-                        if (token.isEmpty())
-                            continue;
-
-                        // Check to see if the value was a comma delimited list./**
-                        // commas were replaced with pipes above.
-                        if (token.contains(",")) {                            
-                            String[] enums = token.toString().split(",");
-
-                            for (int enm = 0; enm < enums.length; enm++) {
-                                edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
-                                    enums[enm]);
-                                values.add(fp);
-
-                                // Only unique values for enum
-                                if(!enumerated.contains(enums[enm])){
-                                    enumerated.add(enums[enm]);
-                                }
-                            }
-                        } else {
-                            // look to see if strings a known enumeration (enum must be previously defined)
-                            if(enumerated.contains(token)){
-                                edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Enumerated(
-                                    token);
-                                values.add(fp);
-                            } else {
-                                // Alright, all thats left is that the value is an arbitrary string.
-                                edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
-                                        token);
-                                values.add(ap);
-                            }
-                        }
-
-                    } else if(cell.getCellTypeEnum() == CellType.NUMERIC) {                        
-                        Double value = cell.getNumericCellValue();
-
-                        // Extra work but we want o classify the number as an integer if possible.
-                        String token = value.toString();
-                        try {
-                            // falls though when value has a mantissa.
-                            int val = Integer.parseInt(token);
-                            edu.drexel.se577.grouptwo.viz.dataset.Value.Int fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.Int(
-                                    val);
-                            values.add(fp);
-                            integers.add(val);
-                            continue;
-                        } catch (NumberFormatException ex) {
-                            // Not an integer... thats fine.
-                        }
-
-                        try {
-                            // Apprently were dealing with a decimal
-                            float val = Float.parseFloat(token);
-                            edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint fp = new edu.drexel.se577.grouptwo.viz.dataset.Value.FloatingPoint(
-                                    val);
-                            values.add(fp);
-                            floats.add(val);
-                            continue;
-                        } catch (NumberFormatException ex) {
-                            // Not a float? really?. add as arbitrary
-                            edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary ap = new edu.drexel.se577.grouptwo.viz.dataset.Value.Arbitrary(
-                                    token);
-                            values.add(ap);
-                        }
-                    } 
+                    if(s.getKeys().size() > 0)
+                        contents.getSamples().add(s);
                 }
             }            
             stream.close();
             wb.close();
            
-            // Determine min/max integers and floats, then add attributes.            
-            if(integers.size() > 0){
-                maxInts = Collections.max(integers);
-                minInts = Collections.min(integers);
+            for (Map.Entry<Integer, ColumnDesc> entry : attributeMetrics.entrySet()) {               
+                ColumnDesc desc = entry.getValue();
+                contents.getDefinition().put(desc.attrib);
             }
 
-            if(floats.size() > 0){
-                maxFloats = Collections.max(floats);            
-                minFloats = Collections.min(floats); 
-            }
-
-            contents.getDefinition().put(new Attribute.Int("integer", maxInts, minInts));
-            contents.getDefinition().put(new Attribute.FloatingPoint("floating", maxFloats, minFloats));
-
-            // Add arbitrary type
-            contents.getDefinition().put(new Attribute.Arbitrary("comment"));
-
-            // Add enumerated type, given found enumerations
-            contents.getDefinition().put(new Attribute.Enumerated("color", enumerated));
-
-            int count = 1;
-            Sample s = new Sample();
-            contents.getSamples().add(s);
-            for (Value v : values) {
-                s.put(sKey + Integer.toString(count), v);
-                contents.getSamples().add(s);
-            }
-
-        } catch (InvalidFormatException e) {
-            e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (EncryptedDocumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InvalidFormatException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

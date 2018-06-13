@@ -126,6 +126,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# MongoDB Temp Directory
+mongoDataTemp
+
 .classpath
 .project
 .settings/*
