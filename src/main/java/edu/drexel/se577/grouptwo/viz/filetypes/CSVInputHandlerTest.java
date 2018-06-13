@@ -9,7 +9,7 @@ public class CSVInputHandlerTest {
     public static void main(String[] args) {
         try {
             Path path = Paths.get(
-                    "src\\main\\java\\edu\\drexel\\se577\\grouptwo\\viz\\test\\test.csv");
+                    ".\\Upload_Test_Files\\test.csv");
             byte[] data = Files.readAllBytes(path);
             new CSVInputHandler().parseFile("test.csv", data);
         } catch (Exception e) {
