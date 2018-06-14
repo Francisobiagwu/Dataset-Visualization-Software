@@ -23,17 +23,5 @@ Use case features include:
 * Append To Existing Dataset : User selects an existing dataset using the pages UI to add new samples. 
 * Visualize Dataset : User selects an existing dataset and visualization method. Data displayed using the chosen visualization method.
 
-| Website Layout     |
-| ------------- |
-| [![Responsive Layout - Menu to access UCs seen at the top right](./readme_images/web_layout.PNG)](./readme_images/web_layout.PNG) |
 
-
-Side note: The website is responsive. When the browsers screen bounds are narrow navigation options will apear within the top left navigation pull down as seen under "Responsive Website Layout" below.
-
-| Responsive Website Layout     |
-| ------------- |:-------------:|
-| [![Responsive Layout - Menu to access UCs seen at the top right](./readme_images/web_layout.PNG)](./readme_images/web_layout.PNG)      | [![Responsive Layout - Menu to access UCs seen at the top right](./readme_images/responsive_layout_expanded.PNG)](./readme_images/responsive_layout_expanded.PNG) |
-
-
-
-
+The website is responsive. When the browsers screen bounds are narrow navigation options will apear within the top left navigation pull down as seen under "Responsive Website Layout" below.
